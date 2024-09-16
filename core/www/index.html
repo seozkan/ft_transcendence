@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PingPong</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <button type="button" class="btn btn-danger">First Bootstrap Element</button>
+    <div class="container d-flex justify-content-center">
+        <a id="firstbutton" class="btn btn-primary" href="api">42 İle Giriş Yap</a>
+        <a id="secondbutton" class="btn btn-secondary" href="api">Giriş Yap</a>
+    </div>
+    <script src="{% static 'js/script.js' %}"></script>
 </body>
 </html>
