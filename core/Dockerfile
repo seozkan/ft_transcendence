@@ -10,3 +10,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /code/
+
+RUN chmod +x /code/exec.sh
+
+ENTRYPOINT ["sh", "./exec.sh"]
