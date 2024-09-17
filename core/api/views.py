@@ -1,7 +1,13 @@
-from rest_framework import viewsets
-from .models import Player
-from .serializers import PlayerSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from .serializers import UserSerializer
 
-class PlayerViewSet(viewsets.ModelViewSet):
-    queryset = Player.objects.all()
-    serializer_class = PlayerSerializer
+class UserView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        obj = User.objects.all()
+        serializer = UserSerializer(obj, many=True)
+
+        return Response(serializer.data)
