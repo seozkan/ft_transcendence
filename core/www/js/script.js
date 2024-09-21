@@ -77,4 +77,4 @@ document.getElementById("test").onclick = async function() {
     }
 };
 
-login("admin","django") 
+login("test","test") 
