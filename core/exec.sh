@@ -28,5 +28,6 @@ password = "${DJANGO_ADMIN_PASSWORD}"
 if not User.objects.filter(username=username).exists():
     User.objects.create_superuser(username, email, password)
 EOF
+python manage.py collectstatic --noinput
 
 exec "$@"

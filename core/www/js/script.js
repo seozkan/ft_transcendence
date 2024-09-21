@@ -7,7 +7,7 @@ async function accessToken() {
     }
 
     try {
-        const response = await fetch('http://localhost:8000/api/token/refresh/', {
+        const response = await fetch('https://localhost/api/token/refresh/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ async function accessToken() {
 
 async function login(username, password) {
     try {
-        const response = await fetch('http://localhost:8000/api/token/', {
+        const response = await fetch('https://localhost/api/token/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
