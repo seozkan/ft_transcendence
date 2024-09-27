@@ -2,14 +2,8 @@ services:
   web:
     container_name: web
     build: ./core
-    environment:
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - DJANGO_ADMIN_USER=${DJANGO_ADMIN_USER}
-      - DJANGO_ADMIN_MAIL=${DJANGO_ADMIN_MAIL}
-      - DJANGO_ADMIN_PASSWORD=${DJANGO_ADMIN_PASSWORD}
-      - POSTGRES_NAME=${POSTGRES_NAME}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./core:/code
@@ -22,10 +16,8 @@ services:
   db:
     container_name: db
     image: postgres:16
-    environment:
-      - POSTGRES_NAME=${POSTGRES_NAME}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     networks:
@@ -37,6 +29,8 @@ services:
     build:
       context: ./core/www
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
       - SERVER_NAME=${SERVER_NAME}
       - SSL_CN=${SSL_CN}
