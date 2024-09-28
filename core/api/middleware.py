@@ -21,6 +21,8 @@ class JWTAuthenticationMiddleware:
                 User = get_user_model()
                 user = User.objects.get(id=payload['user_id'])
                 request.user = user
+            except User.DoesNotExist:
+                return JsonResponse({"error": "User does not exitst"}, status=404)
             except jwt.ExpiredSignatureError:
                 return JsonResponse({"error": "Token has expired"}, status=401)
             except jwt.InvalidTokenError:
