@@ -1,10 +1,12 @@
-from datetime import datetime, timezone, timedelta
-import jwt
+from django.contrib.auth import get_user_model
 from django.conf import settings
-import requests
+from django.shortcuts import redirect
+from django.contrib.auth import login
 from rest_framework.response import Response
 from rest_framework import viewsets
-from django.contrib.auth import get_user_model
+from datetime import datetime, timezone, timedelta
+import requests
+import jwt
 import uuid
 
 class AuthViewset(viewsets.ViewSet):
@@ -56,10 +58,12 @@ class AuthViewset(viewsets.ViewSet):
         info_json = self.get_intra_user_info(request)
         User = get_user_model()
         email = info_json.get("email")
+
         try:
-            User.objects.get(email=email)
-            return Response("User is already registered in the db")
+            # Kullanıcı varsa, veritabanından getir
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
+            # Kullanıcı yoksa, yeni kullanıcı oluştur
             user = User.objects.create_user(
                 username=info_json.get("login"),
                 email=email,
@@ -67,9 +71,15 @@ class AuthViewset(viewsets.ViewSet):
                 last_name=info_json.get("last_name"),
             )
 
-            access_token = self.create_access_token(user.id)
-            refresh_token = self.create_refresh_token(user.id)
-            return Response({
-            "access_token": access_token,
-            "refresh_token": refresh_token
-        })
+        login(request, user)
+
+        # Kullanıcı mevcut ya da yeni oluşturulmuş olsun, token'ları üret
+        access_token = self.create_access_token(user.id)
+        refresh_token = self.create_refresh_token(user.id)
+
+        # Anasayfaya yönlendir ve token'ları cookie olarak ayarla
+        response = redirect('https://localhost')
+        response.set_cookie('access_token', access_token)
+        response.set_cookie('refresh_token', refresh_token)
+        
+        return response
