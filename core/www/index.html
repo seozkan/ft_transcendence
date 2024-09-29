@@ -3,16 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PingPong</title>
+    <title>Ping Pong</title>
     <link rel="stylesheet" href="bootstrap/bootstrap.css">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body>
-    <div class="container d-flex justify-content-center">
-        <a id="firstbutton" class="btn btn-primary" href="https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-4e3667452e36d04b5003f7c295c1563be48767c38a4dbde3a70390181dd37a1f&redirect_uri=https%3A%2F%2Flocalhost%2Faccounts%2Fintra&response_type=code">42 İle Giriş Yap</a>
-        <a id="secondbutton" class="btn btn-secondary" href="/admin">Admin Paneline Git</a>
-    </div>
-    <div id="user-info"></div>
+<body class="d-flex flex-column justify-content-center align-items-center vh-100 bg-dark">
+    <header class="d-flex flex-column justify-content-center align-items-center">
+        <i class="fa-solid fa-table-tennis" style="color: #ffffff; font-size: xx-large;"></i>
+        
+        <h3 class="text-light">Ping Pong</h3>
+    </header>
+    <main class="d-flex flex-column align-items-center">
+        <div class="container d-flex justify-content-center m-3 gap-3">
+            <a id="firstbutton" class="btn btn-light" href="https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-4e3667452e36d04b5003f7c295c1563be48767c38a4dbde3a70390181dd37a1f&redirect_uri=https%3A%2F%2Flocalhost%2Faccounts%2Fintra&response_type=code">42 İle Giriş Yap</a>
+            <a id="secondbutton" class="btn btn-secondary" href="/admin">Admin Paneline Git</a>
+        </div>
+        <div id="user-info" class="text-light m-3"></div>
+    </main>
     <script src="js/script.js"></script>
 </body>
 </html>

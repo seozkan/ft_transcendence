@@ -17,12 +17,14 @@ class JWTAuthenticationMiddleware:
             token = authorization.split(" ")[1]
 
             try:
-                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
                 User = get_user_model()
+                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
                 user = User.objects.get(id=payload['user_id'])
                 request.user = user
+            except jwt.DecodeError:
+                return JsonResponse({"error": "Not enough segments in token"}, status=400)
             except User.DoesNotExist:
-                return JsonResponse({"error": "User does not exitst"}, status=404)
+                return JsonResponse({"error": "User does not exist"}, status=404)
             except jwt.ExpiredSignatureError:
                 return JsonResponse({"error": "Token has expired"}, status=401)
             except jwt.InvalidTokenError:
