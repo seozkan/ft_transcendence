@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.shortcuts import redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from datetime import datetime, timezone, timedelta
 import requests
 import jwt
@@ -53,6 +53,16 @@ class AuthViewset(viewsets.ViewSet):
         response = requests.get(user_info_url, headers=headers)
 
         return response.json()
+    
+    def user_logout(self, request):
+        if request.user.is_authenticated:
+            try:
+                logout(request)
+                return Response("Logout Success", status=status.HTTP_200_OK)
+            except Exception:
+                return Response("Logout Error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response("No user is logged in", status=status.HTTP_400_BAD_REQUEST)
 
     def intra_login(self, request):
         info_json = self.get_intra_user_info(request)
@@ -60,10 +70,8 @@ class AuthViewset(viewsets.ViewSet):
         email = info_json.get("email")
 
         try:
-            # Kullanıcı varsa, veritabanından getir
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            # Kullanıcı yoksa, yeni kullanıcı oluştur
             user = User.objects.create_user(
                 username=info_json.get("login"),
                 email=email,
@@ -73,11 +81,9 @@ class AuthViewset(viewsets.ViewSet):
 
         login(request, user)
 
-        # Kullanıcı mevcut ya da yeni oluşturulmuş olsun, token'ları üret
         access_token = self.create_access_token(user.id)
         refresh_token = self.create_refresh_token(user.id)
 
-        # Anasayfaya yönlendir ve token'ları cookie olarak ayarla
         response = redirect('https://localhost')
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
