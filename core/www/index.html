@@ -8,20 +8,23 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body class="d-flex flex-column justify-content-center align-items-center vh-100 bg-dark">
-    <header class="d-flex flex-column justify-content-center align-items-center">
-        <i class="fa-solid fa-table-tennis" style="color: #ffffff; font-size: xx-large;"></i>
-        
-        <h3 class="text-light">Ping Pong</h3>
-    </header>
-    <main class="d-flex flex-column align-items-center">
-        <div class="container d-flex justify-content-center m-3 gap-3">
-            <a id="firstbutton" class="btn btn-light" href="https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-4e3667452e36d04b5003f7c295c1563be48767c38a4dbde3a70390181dd37a1f&redirect_uri=https%3A%2F%2Flocalhost%2Faccounts%2Fintra&response_type=code">42 İle Giriş Yap</a>
-            <a id="secondbutton" class="btn btn-secondary" href="/admin">Admin Paneline Git</a>
-            <button id="thirdbutton" class="btn btn-danger">Çıkış Yap</button>
+<body class="d-flex bg-dark text-light flex-column vh-100">
+    <header class="d-flex align-items-center p-3">
+        <i class="fa-solid fa-table-tennis-paddle-ball" style="font-size: xx-large;"></i>
+        <div>
+            <h3 class="mb-0 ms-3">Ping Pong</h3>
         </div>
-        <div id="user-info" class="text-light m-3"></div>
+    </header>
+    <main class="d-flex flex-fill justify-content-center align-items-center">
+        <div class="row d-flex flex-column flex-sm-row text-center text-nowrap">
+            <div class="col-12 mb-4"><i class="fa-solid fa-table-tennis-paddle-ball" style="font-size: xxx-large;"></i></div>
+            <a class="col mx-2 btn btn-light mb-2" href="https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-4e3667452e36d04b5003f7c295c1563be48767c38a4dbde3a70390181dd37a1f&redirect_uri=https%3A%2F%2Flocalhost%2Faccounts%2Fintra&response_type=code">42 ile Giriş Yap</a>
+            <a class="col mx-2 btn btn-secondary mb-2" href="/admin">Admin Paneline Git</a>
+            <button id="thirdbutton" class="col mx-2 btn btn-danger mb-2">Çıkış Yap</button>
+            <div id="user-info" class="col-12 text-light mb-2"></div>
+        </div>
     </main>
+    <footer class="text-center py-2">2024 ft_transcendence</footer>
     <script src="js/script.js"></script>
 </body>
 </html>

@@ -48,7 +48,7 @@ document.getElementById("thirdbutton").onclick = async () => {
   const data = await response.json();
   const userInfoDiv = document.getElementById('user-info');
   userInfoDiv.innerHTML = `
-      <p>${data}</p>
+      <p></p>
   `;
 };
 
