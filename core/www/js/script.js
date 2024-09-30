@@ -33,6 +33,7 @@ async function getUserInfo() {
 
 function displayUserInfo(user) {
   const userInfoDiv = document.getElementById('user-info');
+  userInfoDiv.classList.replace('invisible', 'visible');
   userInfoDiv.innerHTML = `
       <p>Kullanıcı Adı: ${user.username}</p>
       <p>Email: ${user.email}</p>
@@ -42,14 +43,11 @@ function displayUserInfo(user) {
 }
 
 document.getElementById("thirdbutton").onclick = async () => {
-  const response = await fetch('https://localhost/accounts/logout', {
+  await fetch('https://localhost/accounts/logout', {
       method: 'GET',
   });
-  const data = await response.json();
   const userInfoDiv = document.getElementById('user-info');
-  userInfoDiv.innerHTML = `
-      <p></p>
-  `;
+  userInfoDiv.classList.replace('visible', 'invisible');
 };
 
 getUserInfo();
