@@ -77,6 +77,7 @@ class AuthViewset(viewsets.ViewSet):
                 email=email,
                 first_name=info_json.get("first_name"),
                 last_name=info_json.get("last_name"),
+                image_url=info_json.get('image', {}).get('versions', {}).get('small')
             )
 
         login(request, user)

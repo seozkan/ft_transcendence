@@ -27,6 +27,7 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(("email address"), blank=True, unique=True)
+    image_url = models.CharField(max_length=200)
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"

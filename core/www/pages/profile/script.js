@@ -36,9 +36,11 @@ function displayUserInfo(user) {
   const profileTextName = document.getElementById('profile-text-name');
   const profileTextUserName = document.getElementById('profile-text-username');
   const profileTextEmail = document.getElementById('profile-text-email');
-  profileTextName.innerHTML = user.first_name + " " + user.last_name
-  profileTextUserName.innerHTML = user.username
-  profileTextEmail.innerHTML = user.email
+  const profileImage= document.getElementById('profile-image');
+  profileTextName.innerHTML = user.first_name + " " + user.last_name;
+  profileTextUserName.innerHTML = user.username;
+  profileTextEmail.innerHTML = user.email;
+  profileImage.src = user.image_url;
 }
 
 getUserInfo();
