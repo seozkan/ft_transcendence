@@ -11,4 +11,4 @@ class UserViewset(viewsets.ViewSet):
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'user not found.'}, status=status.HTTP_404_NOT_FOUND)

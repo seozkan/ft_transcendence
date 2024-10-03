@@ -42,7 +42,7 @@ class AuthViewset(viewsets.ViewSet):
             }
         response = requests.post(intra_auth_url, data=data)
         if response.status_code != 200:
-            return Response({'error': 'Intra Auth Error'}, status=response.status_code)
+            return Response({'Error': 'Intra Auth Error'}, status=response.status_code)
         intra_access_token = response.json().get("access_token")
         return intra_access_token
     
@@ -58,9 +58,9 @@ class AuthViewset(viewsets.ViewSet):
         if request.user.is_authenticated:
             try:
                 logout(request)
-                return Response("Logout Success", status=status.HTTP_200_OK)
+                return Response("success", status=status.HTTP_200_OK)
             except Exception:
-                return Response("Logout Error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response("error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response("No user is logged in", status=status.HTTP_400_BAD_REQUEST)
 
@@ -84,7 +84,7 @@ class AuthViewset(viewsets.ViewSet):
         access_token = self.create_access_token(user.id)
         refresh_token = self.create_refresh_token(user.id)
 
-        response = redirect('https://localhost')
+        response = redirect('https://localhost/profile')
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
         

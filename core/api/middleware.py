@@ -12,7 +12,7 @@ class JWTAuthenticationMiddleware:
             authorization = request.headers.get("Authorization")
 
             if not authorization or not authorization.startswith("Bearer "):
-                return JsonResponse({"error": "Unauthorized"}, status=401)
+                return JsonResponse({"error": "unauthorized"}, status=401)
 
             token = authorization.split(" ")[1]
 
@@ -22,13 +22,13 @@ class JWTAuthenticationMiddleware:
                 user = User.objects.get(id=payload['user_id'])
                 request.user = user
             except jwt.DecodeError:
-                return JsonResponse({"error": "Not enough segments in token"}, status=400)
+                return JsonResponse({"error": "not enough segments in token"}, status=400)
             except User.DoesNotExist:
-                return JsonResponse({"error": "User does not exist"}, status=404)
+                return JsonResponse({"error": "user does not exist"}, status=404)
             except jwt.ExpiredSignatureError:
-                return JsonResponse({"error": "Token has expired"}, status=401)
+                return JsonResponse({"error": "token has expired"}, status=401)
             except jwt.InvalidTokenError:
-                return JsonResponse({"error": "Invalid token"}, status=401)
+                return JsonResponse({"error": "invalid token"}, status=401)
 
         response = self.get_response(request)
         return response
