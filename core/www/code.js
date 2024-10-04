@@ -33,6 +33,16 @@ document.querySelectorAll('.offcanvas-body ul a').forEach(link => {
     });
 });
 
+const showToastMessage = (x) => {
+    const toast = document.querySelector('.toast');
+    if (toast) {
+        document.querySelector('.toast .toast-body').innerHTML = x;
+        new bootstrap.Toast(toast).show();
+    } else {
+        console.error('error: toast element not found');
+    }
+};
+
 //Logout
 
 document.getElementById('logout').addEventListener('click', async () => {
@@ -50,8 +60,8 @@ document.getElementById('logout').addEventListener('click', async () => {
 
         document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        showToastMessage('Çıkış Yapıldı!')
     } catch (error) {
         console.error('error:', error);
     }
 })
-

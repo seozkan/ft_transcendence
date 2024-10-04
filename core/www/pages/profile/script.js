@@ -9,7 +9,6 @@ async function getUserInfo() {
 
   if (accessToken) {
     document.getElementById("offcanvasButton").classList.remove("d-none")
-    console.log("yes")
   }
 
   try {

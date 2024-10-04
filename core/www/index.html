@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,32 +12,33 @@
         integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
+
 <body data-router class="d-flex bg-dark text-light flex-column vh-100">
     <header class="d-flex justify-content-between">
         <div class="d-flex align-items-center m-3">
             <i class="fa-solid fa-table-tennis-paddle-ball" style="font-size: xx-large;"></i>
-            <h3 class="mb-0 ms-3">Ping Pong</h3>
+            <h3 class="mb-0 ms-3 fw-light">Ping Pong</h3>
         </div>
         <div class="d-flex align-items-center m-3">
-            <button id="offcanvasButton" class="btn btn-dark p-0 d-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar"><i
-                    class="fa-solid fa-bars" style="font-size: x-large;"></i></button>
+            <button id="offcanvasButton" class="btn btn-dark p-0 d-none" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#sidebar"><i class="fa-solid fa-bars" style="font-size: x-large;"></i></button>
             <div class="offcanvas offcanvas-start bg-dark" data-bs-scroll="true" id="sidebar">
                 <div class="offcanvas-header">
-                    <h5 class="offcanvas-title text-light" id="sidebarLabel">Ping Pong</h5>
-                    <button type="button" class="btn-close bg-light" data-bs-dismiss="offcanvas"></button>
+                    <h5 class="offcanvas-title fw-light text-light" id="sidebarLabel">Ping Pong</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
                 </div>
                 <hr class="bg-white border-2 border-top border-white w-100">
                 <div class="offcanvas-body text-light">
                     <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
-                        <ul class="nav nav-pills flex-column"> 
+                        <ul class="nav nav-pills flex-column">
                             <li class="nav-item mb-2">
-                                <a href="/profile" class="nav-link bg-light text-dark" data-link>
+                                <a href="/profile" class="nav-link bg-light text-dark fw-light" data-link>
                                     <i class="fa-solid fa-user me-1" style="font-size: large;"></i>
                                     Profil
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/" id="logout" class="nav-link bg-danger text-light" data-link>
+                                <a href="/" id="logout" class="nav-link bg-danger text-light fw-light" data-link>
                                     <i class="fa-solid fa-lock me-1" style="font-size: large;"></i>
                                     Çıkış Yap
                                 </a>
@@ -48,10 +50,22 @@
             </div>
         </div>
     </header>
-    <footer class="text-center py-2 ">2024 ft_transcendence</footer>
-    <script type="module" src="code.js"></script>
+
+    <div class="toast position-absolute bottom-0 end-0 m-3 bg-danger" role="alert">
+        <div class="toast-header">
+            <i class="fa-regular fa-bell me-1"></i>
+            <h6 class="fw-light m-0 me-auto">Bildirim</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body fw-normal">
+        </div>
+    </div>
+
+    <footer class="text-center py-2 d-none d-xl-block">2024 ft_transcendence</footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"
         integrity="sha512-ykZ1QQr0Jy/4ZkvKuqWn4iF3lqPZyij9iRv6sGqLRdTPkY69YX6+7wvVGmsdBbiIfN/8OdsI7HABjvEok6ZopQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="code.js"></script>
 </body>
+
 </html>
