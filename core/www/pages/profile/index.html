@@ -1,17 +1,60 @@
 <main class="d-flex flex-fill">
     <div class="container">
         <h2 class="text-center fw-light mt-2">Profil</h2>
-            <div class="row mt-5">
-                <div class="col mt-4">
-                    <div class="card border border-danger bg-dark text-light">
-                        <div class="card-body position-relative">
-                            <img id="profile-image" src="" class="img-fluid position-absolute top-0 start-50 translate-middle border border-danger rounded-pill" style="height: 7rem;">
-                            <h5 id="profile-text-name" class="card-title fw-light mt-5"></h5>
-                            <h6 id="profile-text-username" class="card-subtitle fw-light mb-2"></h6>
-                            <h6 id="profile-text-email" class="card-subtitle fw-light mb-2"></h6>
+        <div class="row mt-5">
+            <div class="col mt-4">
+                <div class="card border border-danger bg-dark text-light">
+                    <div class="card-body position-relative">
+                        <img id="profile-image" src=""
+                            class="img-fluid position-absolute top-0 start-50 translate-middle border border-danger rounded-pill"
+                            style="height: 7rem;">
+                        <h5 id="profile-text-name" class="card-title fw-light mt-5"></h5>
+                        <h6 id="profile-text-username" class="card-subtitle fw-light mb-2"></h6>
+                        <h6 id="profile-text-email" class="card-subtitle fw-light mb-2"></h6>
+                        <button class="btn btn-danger position-absolute bottom-0 end-0 m-3" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false"
+                            aria-controls="collapseExample">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="collapse" id="collapseExample">
+                    <div class="card card-body bg-dark text-light border-danger mt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="tfaswitch">
+                            <label class="form-check-label" for="tfaswitch">İki Adımlı Doğrulama</label>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title">İki Adımlı Doğrulama Aktivasyonu</h5>
+                </div>
+                <form id="tfaInputForm" class="d-flex flex-column align-items-center modal-body p-0 px-3">
+                    <p class="p-0 m-0 my-3 align-self-center ">Qr kodunuzu kimlik doğrulama uygulamanıza okutunuz.</p>
+                    <img id="qr-code" src="" alt="QR Code" class="img-fluid" style="width: 12rem;">
+                    <input class="form-control form-control-sm m-3 p-2" type="password" name="tfa" id="tfaInput"
+                        placeholder="Doğrulama Kodu" required>
+                    <div class="invalid-feedback">
+                        2FA Doğrulaması Başarısız!
+                    </div>
+                    <div class="d-flex justify-content-beetween">
+                        <button id="rejectButton" type="button" class="btn btn-danger mx-1 mb-3"
+                            data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" id="confirmButton" type="button" class="btn btn-success mx-1 mb-3"
+                            >Onayla</button>
+                    </div>
+                </form>
+
+                
+            </div>
+        </div>
     </div>
 </main>

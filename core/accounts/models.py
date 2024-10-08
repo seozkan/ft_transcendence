@@ -26,8 +26,10 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(("email address"), blank=True, unique=True)
+    email = models.EmailField(("email adresi"), unique=True)
     image_url = models.CharField(max_length=200)
+    isTfaActive = models.BooleanField(("2FA Etkin"),default=False)
+    tfaSecret = models.CharField(("2FA Anahtarı"),max_length=200, blank=True, null=True)
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"

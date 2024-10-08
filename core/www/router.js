@@ -1,4 +1,6 @@
-import { isUserLoggedIn } from './code.js';
+"use strict";
+
+import { isUserLoggedIn, showToastMessage } from './code.js';
 
 class Router {
   constructor(routes) {
@@ -24,10 +26,15 @@ class Router {
       return;
     }
 
-    if (!isUserLoggedIn() && matchedRoute.path !== '/') {
-      console.error('error: user is not logged in');
-      this.loadRoute('');
-      return;
+    if (!isUserLoggedIn()) {
+      if (matchedRoute.path !== '/' && matchedRoute.path !== '/tfa') {
+        console.error('error: user is not logged in');
+        this.loadRoute('');
+        setTimeout(() => {
+          showToastMessage('Bu sayfaya erişmeye yetkili değilsiniz. Giriş yapınız!');
+        }, 0);
+        return;
+      }
     }
 
     const url = `/${urlSegments.join("/")}`;
@@ -87,14 +94,24 @@ class Router {
     document.head.appendChild(link);
   }
 
-  _loadJs(url) {
+  async _loadJs(url) {
     const existingScript = document.querySelector("script[data-router-script]");
     if (existingScript) {
-      existingScript.remove()
+      existingScript.remove();
     }
+
+    const response = await fetch(url);
+    const scriptContent = await response.text();
     const script = document.createElement("script");
     script.src = url;
     script.setAttribute("data-router-script", "true");
+
+    if (scriptContent.includes('import')) {
+      script.type = 'module';
+    } else {
+      script.type = 'text/javascript';
+    }
+
     document.body.appendChild(script);
   }
 }
@@ -105,6 +122,12 @@ const routes = [
     templateUrl: "/pages/home/index.html",
     styleUrl: "/pages/home/style.css",
     scriptUrl: "/pages/home/script.js",
+  },
+  {
+    path: "/tfa",
+    templateUrl: "/pages/tfa/index.html",
+    styleUrl: "/pages/tfa/style.css",
+    scriptUrl: "/pages/tfa/script.js",
   },
   {
     path: "/profile",

@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 import requests
 import jwt
 import uuid
+import pyotp
 
 class AuthViewset(viewsets.ViewSet):
     def create_access_token(self, user_id):
@@ -71,6 +72,10 @@ class AuthViewset(viewsets.ViewSet):
 
         try:
             user = User.objects.get(email=email)
+            if (user.isTfaActive):
+                response = redirect(f'https://localhost/tfa')
+                response.set_cookie('uuid', user.id)
+                return response
         except User.DoesNotExist:
             user = User.objects.create_user(
                 username=info_json.get("login"),
@@ -88,5 +93,27 @@ class AuthViewset(viewsets.ViewSet):
         response = redirect('https://localhost/profile')
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
-        
         return response
+    
+    def tfa_login(self, request):
+        try:
+            User = get_user_model()
+            user = User.objects.get(id=request.COOKIES.get('uuid'))
+            totp = pyotp.TOTP(user.tfaSecret)
+            tfa_code = request.data.get('tfaCode')
+            if totp.verify(tfa_code):
+                login(request, user)
+
+                access_token = self.create_access_token(user.id)
+                refresh_token = self.create_refresh_token(user.id)
+
+                response = redirect('https://localhost/profile')
+                response.set_cookie('access_token', access_token)
+                response.set_cookie('refresh_token', refresh_token)
+                return response
+            else:
+                return Response({'error': 'invalid TOTP code'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

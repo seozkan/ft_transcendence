@@ -1,6 +1,6 @@
-import { Router, routes } from './router.js';
+"use strict";
 
-const router = new Router(routes);
+import { Router, routes } from './router.js';
 
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -8,13 +8,8 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-export function isUserLoggedIn() {
-    const accessToken = getCookie('access_token');
 
-    if (accessToken) return true;
-    return false;
-}
-
+// DOM Content
 document.addEventListener("DOMContentLoaded", () => {
     document.body.addEventListener("click", (event) => {
         if (event.target.matches("a[data-link]")) {
@@ -25,6 +20,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// Variables
+export const accessToken = getCookie('access_token');
+export const csrfToken = getCookie('csrftoken');
+const router = new Router(routes);
+
+
+
+export async function getUserInfo() {
+
+    if (!accessToken) {
+        console.error('error: access token is missing or invalid');
+        return;
+    }
+    else {
+        document.getElementById("offcanvasButton").classList.remove("d-none")
+    }
+
+    try {
+        const response = await fetch('https://localhost/api/user', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            console.error('network error:', response.status);
+        }
+
+        const user = await response.json();
+        return user;
+    } catch (error) {
+        console.error('error:', error);
+    }
+}
+
+export function isUserLoggedIn() {
+    return !!accessToken;
+}
+
+// Sidebar
 document.querySelectorAll('.offcanvas-body ul a').forEach(link => {
     link.addEventListener('click', () => {
         const offcanvasElement = document.getElementById('sidebar');
@@ -33,10 +70,12 @@ document.querySelectorAll('.offcanvas-body ul a').forEach(link => {
     });
 });
 
-const showToastMessage = (x) => {
+
+// Toast Message
+export const showToastMessage = (message) => {
     const toast = document.querySelector('.toast');
     if (toast) {
-        document.querySelector('.toast .toast-body').innerHTML = x;
+        document.querySelector('.toast .toast-body').innerHTML = message;
         new bootstrap.Toast(toast).show();
     } else {
         console.error('error: toast element not found');
@@ -44,7 +83,6 @@ const showToastMessage = (x) => {
 };
 
 //Logout
-
 document.getElementById('logout').addEventListener('click', async () => {
     try {
 
