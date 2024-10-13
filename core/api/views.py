@@ -17,6 +17,7 @@ class UserViewset(viewsets.ViewSet):
         except User.DoesNotExist:
             return Response({'error': 'user not found.'}, status=status.HTTP_404_NOT_FOUND)
         
+    # 2FA Funcs
     def generate_tfa(self, request):
         try:
             User = get_user_model()
@@ -55,4 +56,22 @@ class UserViewset(viewsets.ViewSet):
         except User.DoesNotExist:
             return Response({'error': 'user not found.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    #Personalize Funcs
+
+    def update_ui(self, request):
+        try:
+            User = get_user_model()
+            user = User.objects.get(id=request.user.id)
+            imageUrl = request.data.get('imageUrl')
+            username = request.data.get('username')
+            if not (username.isalnum() and  len(username) > 3):
+                return Response({'error': 'username must be alphanumeric and username length must be greater than three'}, status=status.HTTP_400_BAD_REQUEST)
+            user.username = username
+            user.imageUrl = imageUrl
+            user.save()
+            return Response({'success': 'username and imageurl updated succesfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,6 +1,6 @@
 "use strict";
 
-import { getUserInfo, accessToken ,csrfToken } from '../../code.js';
+import { getUserInfo, accessToken ,csrfToken, router } from '../../code.js';
 
 // Display User Info
 async function displayUserInfo() {
@@ -13,10 +13,15 @@ async function displayUserInfo() {
   profileTextName.innerHTML = user.first_name + " " + user.last_name;
   profileTextUserName.innerHTML = user.username;
   profileTextEmail.innerHTML = user.email;
-  profileImage.src = user.image_url;
+  profileImage.src = user.imageUrl;
   switchElement.checked = user.isTfaActive;
   switchElement.disabled = switchElement.checked;
 }
+
+//Personalize Button
+document.getElementById('personalizeButton').addEventListener('click', () => {
+  router.loadRoute('personalize');
+});
 
 //Switch
 const switchElement = document.getElementById('tfaswitch');

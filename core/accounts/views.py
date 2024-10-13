@@ -76,13 +76,15 @@ class AuthViewset(viewsets.ViewSet):
                 response = redirect(f'https://localhost/tfa')
                 response.set_cookie('uuid', user.id)
                 return response
+            elif not (user.username):
+                response = redirect(f'https://localhost/personalize')
+                response.set_cookie('uuid', user.id)
+                return response
         except User.DoesNotExist:
             user = User.objects.create_user(
-                username=info_json.get("login"),
                 email=email,
                 first_name=info_json.get("first_name"),
                 last_name=info_json.get("last_name"),
-                image_url=info_json.get('image', {}).get('versions', {}).get('small')
             )
 
         login(request, user)

@@ -130,6 +130,12 @@ const routes = [
     scriptUrl: "/pages/tfa/script.js",
   },
   {
+    path: "/personalize",
+    templateUrl: "/pages/personalize/index.html",
+    styleUrl: "/pages/personalize/style.css",
+    scriptUrl: "/pages/personalize/script.js",
+  },
+  {
     path: "/profile",
     templateUrl: "/pages/profile/index.html",
     styleUrl: "/pages/profile/style.css",

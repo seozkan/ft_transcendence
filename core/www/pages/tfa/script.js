@@ -1,6 +1,6 @@
 "use strict";
 
-import { csrfToken } from '../../code.js';
+import { csrfToken, router} from '../../code.js';
 
 document.getElementById('tfa-form').addEventListener('submit', function (event) {
     event.preventDefault();
@@ -21,7 +21,7 @@ async function tfa_login(tfaCode) {
     });
 
     if (response.ok) {
-        window.location.href = 'https://localhost/profile';
+        router.loadRoute("profile");
     } else {
         const errorData = await response.json();
         console.error('Error:', errorData.error);

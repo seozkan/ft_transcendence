@@ -23,9 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Variables
 export const accessToken = getCookie('access_token');
 export const csrfToken = getCookie('csrftoken');
-const router = new Router(routes);
-
-
+export const router = new Router(routes);
 
 export async function getUserInfo() {
 
