@@ -1,5 +1,7 @@
 "use strict";
 
+import { accessToken, showToastMessage} from './code.js'; 
+
 class Router {
   constructor() {
     this.routes = [];
@@ -11,6 +13,11 @@ class Router {
   }
 
   navigate(path, replace = false) {
+    if (!accessToken && path !== '/') {
+      showToastMessage('Bu sayfaya erişim yetkiniz bulunmamaktadır. Lütfen Giriş Yapınız!');
+      path = '/';
+    }
+
     const foundRoute = this.routes.find(route => route.path === path);
 
     if (foundRoute) {
