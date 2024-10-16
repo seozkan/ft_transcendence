@@ -92,7 +92,7 @@ class AuthViewset(viewsets.ViewSet):
         access_token = self.create_access_token(user.id)
         refresh_token = self.create_refresh_token(user.id)
 
-        response = redirect('https://localhost/profile')
+        response = redirect('https://localhost/personalize')
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
         return response
