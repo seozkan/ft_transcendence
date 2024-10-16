@@ -1,152 +1,97 @@
 "use strict";
 
-import { isUserLoggedIn, showToastMessage } from './code.js';
-
 class Router {
-  constructor(routes) {
-    this.routes = routes;
-    this._loadInitialRoute();
-
-    window.addEventListener('popstate', () => {
-      this._loadInitialRoute();
-    });
+  constructor() {
+    this.routes = [];
+    this.currentRoute = null;
   }
 
-  _loadInitialRoute() {
-    const pathNameSplit = window.location.pathname.split("/");
-    const pathSegments = pathNameSplit.length > 1 ? pathNameSplit.slice(1) : [""];
-    this.loadRoute(...pathSegments);
+  addRoute(path, component) {
+    this.routes.push({ path, component });
   }
 
-  async loadRoute(...urlSegments) {
-    const matchedRoute = this._matchUrlToRoute(urlSegments);
+  navigate(path, replace = false) {
+    const foundRoute = this.routes.find(route => route.path === path);
 
-    if (!matchedRoute) {
-      this.loadRoute('404');
-      return;
-    }
-
-    if (!isUserLoggedIn()) {
-      if (matchedRoute.path !== '/' && matchedRoute.path !== '/tfa') {
-        console.error('error: user is not logged in');
-        this.loadRoute('');
-        setTimeout(() => {
-          showToastMessage('Bu sayfaya erişmeye yetkili değilsiniz. Giriş yapınız!');
-        }, 0);
-        return;
+    if (foundRoute) {
+      this.currentRoute = foundRoute;
+      this.loadComponent();
+      if (replace) {
+        history.replaceState(null, '', path);
+      } else {
+        history.pushState(null, '', path);
       }
-    }
-
-    const url = `/${urlSegments.join("/")}`;
-
-    history.pushState({}, "", url);
-
-    const routerOutElement = document.querySelector("[data-router]");
-
-    if (!routerOutElement) {
-      console.error("error: data-router element not found.");
-      return;
-    }
-
-    // HTML Load
-    const htmlContent = await this._loadHtml(matchedRoute.templateUrl);
-    const headerElement = document.querySelector('header');
-    const mainElement = document.querySelector('main');
-
-    if (mainElement) {
-      mainElement.remove();
-    }
-
-    headerElement.insertAdjacentHTML('afterend', htmlContent);
-
-    // CSS Load
-    this._loadCss(matchedRoute.styleUrl);
-    // JS Load
-    this._loadJs(matchedRoute.scriptUrl);
-  }
-
-  _matchUrlToRoute(urlSegments) {
-    return this.routes.find((route) => {
-      const routePathSegments = route.path.split("/").slice(1);
-
-      if (routePathSegments.length !== urlSegments.length) {
-        return false;
-      }
-
-      return routePathSegments.every((segment, i) => segment === urlSegments[i]);
-    });
-  }
-
-  async _loadHtml(url) {
-    const response = await fetch(url);
-    return await response.text();
-  }
-
-  _loadCss(url) {
-    const existingLink = document.querySelector("link[data-router-css]");
-    if (existingLink) {
-      existingLink.remove()
-    }
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = url;
-    link.setAttribute("data-router-css", "true");
-    document.head.appendChild(link);
-  }
-
-  async _loadJs(url) {
-    const existingScript = document.querySelector("script[data-router-script]");
-    if (existingScript) {
-      existingScript.remove();
-    }
-
-    const response = await fetch(url);
-    const scriptContent = await response.text();
-    const script = document.createElement("script");
-    script.src = url;
-    script.setAttribute("data-router-script", "true");
-
-    if (scriptContent.includes('import')) {
-      script.type = 'module';
     } else {
-      script.type = 'text/javascript';
+      this.navigate('/404');
+    }
+  }
+
+  async loadComponent() {
+    const { component } = this.currentRoute;
+    const main = document.querySelector('main');
+    const header = document.querySelector('header');
+
+    if (main){
+      main.remove();
     }
 
-    document.body.appendChild(script);
+    const existingLinks = document.querySelectorAll('link[data-router]');
+    existingLinks.forEach(link => link.parentNode.removeChild(link));
+
+    const existingScripts = document.querySelectorAll('script[data-router]');
+    existingScripts.forEach(script => script.parentNode.removeChild(script));
+
+    try {
+      const response = await fetch(`pages/${component}/${component}.html`);
+      const html = await response.text();
+      header.insertAdjacentHTML('afterend', html);
+
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `pages/${component}/${component}.css`;
+      link.setAttribute('data-router', 'true');
+      document.head.appendChild(link);
+
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = `pages/${component}/${component}.js`;
+      script.setAttribute('data-router', 'true');
+      script.addEventListener('load', () => {
+        import(`./pages/${component}/${component}.js`).then(module => {
+          if (module.init && typeof module.init === 'function') {
+            module.init();
+          }
+        });
+      });
+      document.body.appendChild(script);
+    } catch (error) {
+      console.error(`error loading component ${component}:`, error);
+    }
   }
 }
 
-const routes = [
-  {
-    path: "/",
-    templateUrl: "/pages/home/index.html",
-    styleUrl: "/pages/home/style.css",
-    scriptUrl: "/pages/home/script.js",
-  },
-  {
-    path: "/tfa",
-    templateUrl: "/pages/tfa/index.html",
-    styleUrl: "/pages/tfa/style.css",
-    scriptUrl: "/pages/tfa/script.js",
-  },
-  {
-    path: "/personalize",
-    templateUrl: "/pages/personalize/index.html",
-    styleUrl: "/pages/personalize/style.css",
-    scriptUrl: "/pages/personalize/script.js",
-  },
-  {
-    path: "/profile",
-    templateUrl: "/pages/profile/index.html",
-    styleUrl: "/pages/profile/style.css",
-    scriptUrl: "/pages/profile/script.js",
-  },
-  {
-    path: "/404",
-    templateUrl: "/pages/404/index.html",
-    styleUrl: "/pages/404/style.css",
-    scriptUrl: "/pages/404/script.js",
-  }
-];
+const router = new Router();
 
-export { Router, routes };
+router.addRoute('/', 'home');
+router.addRoute('/profile', 'profile');
+router.addRoute('/personalize', 'personalize');
+router.addRoute('/404', '404');
+router.addRoute('/tfa', 'tfa');
+
+router.navigate(window.location.pathname, true);
+
+window.addEventListener('popstate', () => {
+  const currentPath = window.location.pathname;
+  router.navigate(currentPath, true);
+});
+
+document.body.addEventListener('click', (event) => {
+  if (event.target.tagName === 'A' && !event.target.hasAttribute('data-no-router')) {
+    event.preventDefault();
+    const path = event.target.getAttribute('href');
+    console.log(`Link clicked: navigating to ${path}`);
+    router.navigate(path);
+  }
+});
+
+export default router;

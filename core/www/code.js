@@ -1,29 +1,14 @@
 "use strict";
 
-import { Router, routes } from './router.js';
-
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-
-// DOM Content
-document.addEventListener("DOMContentLoaded", () => {
-    document.body.addEventListener("click", (event) => {
-        if (event.target.matches("a[data-link]")) {
-            event.preventDefault();
-            const url = event.target.href.split("/");
-            router.loadRoute(...url.slice(3));
-        }
-    });
-});
-
 // Variables
 export const accessToken = getCookie('access_token');
 export const csrfToken = getCookie('csrftoken');
-export const router = new Router(routes);
 
 export async function getUserInfo() {
 
