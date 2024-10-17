@@ -14,7 +14,7 @@ export function init() {
     profileTextName.innerHTML = user.first_name + " " + user.last_name;
     profileTextUserName.innerHTML = user.username;
     profileTextEmail.innerHTML = user.email;
-    profileImage.src = user.imageUrl;
+    profileImage.src = user.avatar_url;
     switchElement.checked = user.isTfaActive;
     switchElement.disabled = switchElement.checked;
   }

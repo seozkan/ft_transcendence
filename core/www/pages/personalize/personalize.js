@@ -4,26 +4,27 @@ import { accessToken, csrfToken } from '../../code.js';
 import router from '../../router.js';
 
 export function init() {
-  document.getElementById("nicknameSendButton").addEventListener("click", async (event) => {
+  document.getElementById("personalizeSendButton").addEventListener("click", async (event) => {
     event.preventDefault();
-    const carousel = document.getElementById('carouselExampleFade');
-    const activeCarousel = carousel.querySelector('.carousel-item.active');
+    const avatar = document.getElementById('avatarFileInput').files[0];
     const nicknameInput = document.getElementById('nicknameInput');
-    const imgElement = activeCarousel.querySelector('img');
+  
+    const formData = new FormData();
+    formData.append('avatar', avatar);
+    formData.append('username', nicknameInput.value);
   
     try {
       const response = await fetch('https://localhost/api/update_ui', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken
         },
-        body: JSON.stringify({ imageUrl: imgElement.src, username: nicknameInput.value })
+        body: formData
       });
   
       if (!response.ok) {
-        console.error('error: an error occurred while updating imageurl and username');
+        console.error('error: an error occurred while updating avatar and username');
       } else {
         router.navigate('/profile');
       }

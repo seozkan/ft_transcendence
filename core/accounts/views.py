@@ -92,7 +92,7 @@ class AuthViewset(viewsets.ViewSet):
         access_token = self.create_access_token(user.id)
         refresh_token = self.create_refresh_token(user.id)
         
-        if user.imageUrl:
+        if user.username:
             response = redirect('https://localhost/profile')
         else:
             response = redirect('https://localhost/personalize')

@@ -22,11 +22,19 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
         return self.create_user(email, password, **extra_fields)
 
+def user_avatar_path(instance, filename):
+    return f'avatars/{instance.id}/{filename}'
+
 class CustomUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(("email adresi"), unique=True)
     username = models.CharField(max_length=200, unique=True, blank=True, null=True)
-    imageUrl = models.CharField(max_length=200, blank=True, null=True)
+    avatar = models.ImageField(
+        upload_to=user_avatar_path, 
+        blank=True, 
+        null=True, 
+        default='avatars/default_avatar.jpg'
+    )
     isTfaActive = models.BooleanField(("2FA Etkin"),default=False)
     tfaSecret = models.CharField(("2FA Anahtarı"),max_length=200, blank=True, null=True)
     objects = CustomUserManager()

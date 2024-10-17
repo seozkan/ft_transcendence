@@ -13,7 +13,7 @@ class Router {
   }
 
   navigate(path, replace = false) {
-    if (!accessToken && path !== '/') {
+    if (!accessToken && path !== '/' && path !== '/tfa') {
       showToastMessage('Bu sayfaya erişim yetkiniz bulunmamaktadır. Lütfen Giriş Yapınız!');
       path = '/';
     }

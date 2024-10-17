@@ -64,14 +64,17 @@ class UserViewset(viewsets.ViewSet):
         try:
             User = get_user_model()
             user = User.objects.get(id=request.user.id)
-            imageUrl = request.data.get('imageUrl')
+            avatar = request.data.get('avatar')
             username = request.data.get('username')
             if not (username.isalnum() and  len(username) > 3):
                 return Response({'error': 'username must be alphanumeric and username length must be greater than three'}, status=status.HTTP_400_BAD_REQUEST)
             user.username = username
-            user.imageUrl = imageUrl
+            if avatar != 'undefined':
+                if user.avatar and user.avatar.name != 'avatars/default_avatar.jpg':
+                    user.avatar.delete(save=False)
+                user.avatar.save(avatar.name, avatar)
             user.save()
-            return Response({'success': 'username and imageurl updated succesfully'}, status=status.HTTP_200_OK)
+            return Response({'success': 'username and avatar updated succesfully'}, status=status.HTTP_200_OK)
         except Exception as e:
-            print(e)
+
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
