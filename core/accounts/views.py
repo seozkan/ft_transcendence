@@ -9,6 +9,7 @@ import requests
 import jwt
 import uuid
 import pyotp
+import re
 
 class AuthViewset(viewsets.ViewSet):
     def create_access_token(self, user_id):
@@ -54,16 +55,6 @@ class AuthViewset(viewsets.ViewSet):
         response = requests.get(user_info_url, headers=headers)
 
         return response.json()
-    
-    def user_logout(self, request):
-        if request.user.is_authenticated:
-            try:
-                logout(request)
-                return Response("success", status=status.HTTP_200_OK)
-            except Exception:
-                return Response("error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response("No user is logged in", status=status.HTTP_400_BAD_REQUEST)
 
     def intra_login(self, request):
         info_json = self.get_intra_user_info(request)
@@ -122,3 +113,50 @@ class AuthViewset(viewsets.ViewSet):
             return Response({'error': 'user not found.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def user_register(self, request):
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        password = request.data.get('password')
+        email = request.data.get('email')
+
+        first_name_pattern = re.compile(r'^[a-zA-ZçÇğĞıİöÖşŞüÜ\s]+$')
+        if not first_name_pattern.match(first_name) or len(first_name) < 2 or len(first_name) > 30:
+            return Response({'error': 'Invalid first name'}, status=status.HTTP_400_BAD_REQUEST)
+
+        last_name_pattern = re.compile(r'^[a-zA-ZçÇğĞıİöÖşŞüÜ\s]+$')
+        if not last_name_pattern.match(last_name) or len(last_name) < 2 or len(last_name) > 30:
+            return Response({'error': 'Invalid last name'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        email_pattern = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+        if not email_pattern.match(email) or len(email) > 50:
+            return Response({'error': 'Invalid email address'}, status=status.HTTP_400_BAD_REQUEST)
+
+        password_pattern = re.compile(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$')
+        if not password_pattern.match(password) or len(password) > 20:
+            return Response({'error': 'Invalid password. Password must be at least 8 characters long, contain at least one letter, one number, and one special character.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        User = get_user_model()
+        try:
+            User.objects.get(email=email)
+            return Response({'error': 'user already register'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            User.objects.create_user(
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=password
+            )
+            return Response({'success': 'user created'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def user_logout(self, request):
+        if request.user.is_authenticated:
+            try:
+                logout(request)
+                return Response("success", status=status.HTTP_200_OK)
+            except Exception:
+                return Response("error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response("No user is logged in", status=status.HTTP_400_BAD_REQUEST)
