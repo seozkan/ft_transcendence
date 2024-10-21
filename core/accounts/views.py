@@ -10,6 +10,7 @@ import jwt
 import uuid
 import pyotp
 import re
+from django.contrib.auth import authenticate
 
 class AuthViewset(viewsets.ViewSet):
     def create_access_token(self, user_id):
@@ -151,6 +152,46 @@ class AuthViewset(viewsets.ViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    
+    def user_login(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        email_pattern = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+        if not email_pattern.match(email) or len(email) > 50:
+            return Response({'error': 'Invalid email address'}, status=status.HTTP_400_BAD_REQUEST)
+
+        password_pattern = re.compile(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$')
+        if not password_pattern.match(password) or len(password) > 20:
+            return Response({'error': 'Invalid password. Password must be at least 8 characters long, contain at least one letter, one number, and one special character.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        User = get_user_model()
+        try:
+            user = authenticate(request, email=email, password=password)
+
+            if user is not None:
+                if user.isTfaActive:
+                    response = redirect(f'https://localhost/tfa')
+                    response.set_cookie('uuid', user.id)
+                    return response
+                else:
+                    login(request, user)
+
+                    access_token = self.create_access_token(user.id)
+                    refresh_token = self.create_refresh_token(user.id)
+
+                    response = redirect('https://localhost/personalize')
+                    response.set_cookie('access_token', access_token)
+                    response.set_cookie('refresh_token', refresh_token)
+                    return response
+            else:
+                return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
     def user_logout(self, request):
         if request.user.is_authenticated:
             try:

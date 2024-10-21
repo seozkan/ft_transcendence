@@ -23,9 +23,6 @@ export function init() {
 
         if (response.redirected) {
             window.location.href = response.url;
-        } else if (response.ok) {
-            const data = await response.json();
-            window.location.href = data;
         } else {
             const errorData = await response.json();
             console.error('Error:', errorData.error);

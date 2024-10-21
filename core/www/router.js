@@ -13,7 +13,7 @@ class Router {
   }
 
   navigate(path, replace = false) {
-    const publicPaths = ['/', '/tfa', '/register'];
+    const publicPaths = ['/', '/tfa', '/login', '/register'];
     
     if (!accessToken && !publicPaths.includes(path)) {
       showToastMessage('Bu sayfaya erişim yetkiniz bulunmamaktadır. Lütfen Giriş Yapınız!');
@@ -86,6 +86,7 @@ router.addRoute('/profile', 'profile');
 router.addRoute('/personalize', 'personalize');
 router.addRoute('/404', '404');
 router.addRoute('/tfa', 'tfa');
+router.addRoute('/login', 'login');
 router.addRoute('/register', 'register');
 
 router.navigate(window.location.pathname, true);

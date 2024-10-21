@@ -1,11 +1,18 @@
 <main class="d-flex flex-fill justify-content-center align-items-center">
     <div class="d-flex flex-column">
-        <div>
-            <div class="mb-3">
-                <label for="formFile" class="form-label" >Avatar Yükleyiniz</label>
-                <input id="avatarFileInput" class="form-control" type="file"  accept="image/*">
-                <input id="nicknameInput" type="text" class="form-control mt-3" placeholder="Kullanıcı Adı Giriniz.">
-                <button id="personalizeSendButton" class="btn btn-outline-light btn-block w-100 mt-3">İlerle</button>
+        <form id="personalizeForm">
+            <div class="mb-2">
+                <label for="avatarFileInput" class="form-label">Avatar Yükleyiniz</label>
+                <input id="avatarFileInput" class="form-control" type="file" accept="image/*">
+                <div id="InvalidAvatar" class="invalid-feedback"></div>
             </div>
-        </div>
+            <div class="mb-2">
+                <label for="nicknameInput" class="form-label mt-1">Kullanıcı Adı Seçiniz</label>
+                <input id="nicknameInput" type="text" class="form-control" placeholder="Kullanıcı Adı Giriniz.">
+                <div id="InvalidUsername" class="invalid-feedback"></div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-outline-light btn-block w-100">İlerle</button>
+            </div>
+        </form>
 </main>
