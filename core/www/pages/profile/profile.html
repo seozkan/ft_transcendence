@@ -1,6 +1,6 @@
 <main class="d-flex flex-fill py-5">
     <div class="container">
-        <h2 class="text-center fw-light mt-2">Profil</h2>
+        <h2 class="text-center fw-light mt-5">Profil</h2>
         <div class="row mt-5">
             <div class="col mt-4">
                 <div class="card border border-danger bg-dark text-light">
@@ -11,30 +11,13 @@
                         <h5 id="profile-text-name" class="card-title fw-light mt-5"></h5>
                         <h6 id="profile-text-username" class="card-subtitle fw-light mb-2"></h6>
                         <h6 id="profile-text-email" class="card-subtitle fw-light mb-2"></h6>
-                        <button class="btn btn-danger position-absolute bottom-0 end-0 m-3" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false"
-                            aria-controls="collapseExample">
-                            <i class="fa-solid fa-gear"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="collapse" id="collapseExample">
-                    <div class="card card-body bg-dark text-light border-danger mt-2">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input bg-danger" type="checkbox" role="switch" id="tfaswitch">
-                            <label class="form-check-label" for="tfaswitch">İki Adımlı Doğrulama</label>
-                        </div>
-                        <div>
-                            <button id="personalizeButton" class="btn btn-danger btn-sm mt-2">Kişiselleştir</button>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade">
+    <div class="modal fade" id="tfaModal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content bg-dark">
                 <div class="modal-header">

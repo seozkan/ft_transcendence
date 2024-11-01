@@ -1,6 +1,6 @@
 import { csrfToken, showToastMessage } from '../../code.js';
 
-export function init() {
+export function init(params) {
     const loginForm = document.getElementById('loginForm');
 
     const loginEmailInput = document.getElementById('loginEmailInput');

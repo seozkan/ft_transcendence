@@ -2,7 +2,7 @@
 
 import { csrfToken } from '../../code.js';
 
-export function init() {
+export function init(params) {
     document.getElementById('tfaButton').addEventListener('click', function (event) {
         event.preventDefault();
         const tfaCode = document.getElementById('password').value;

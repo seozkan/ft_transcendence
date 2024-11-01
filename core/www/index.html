@@ -20,8 +20,11 @@
             <h3 class="mb-0 ms-3 fw-light">Ping Pong</h3>
         </div>
         <div class="d-flex align-items-center m-3">
-            <button id="offcanvasButton" class="btn btn-dark p-0 d-none" type="button" data-bs-toggle="offcanvas"
-                data-bs-target="#sidebar"><i class="fa-solid fa-bars" style="font-size: x-large;"></i></button>
+            <button type="button" class="btn btn-dark" id="settingsButton" data-bs-toggle="modal" data-bs-target="#settings">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button id="offcanvasButton" class="btn btn-dark ms-1" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#sidebar"><i class="fa-solid fa-bars"></i></button>
             <div class="offcanvas offcanvas-start bg-dark" data-bs-scroll="true" id="sidebar">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title fw-light text-light" id="sidebarLabel">Ping Pong</h5>
@@ -51,7 +54,7 @@
         </div>
     </header>
 
-    <div class="toast position-absolute bottom-0 end-0 m-3 bg-danger" role="alert">
+    <div class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger" role="alert">
         <div class="toast-header">
             <i class="fa-regular fa-bell me-1"></i>
             <h6 class="text-body-secondary fw-light m-0 me-auto">Bildirim</h6>
@@ -61,10 +64,33 @@
         </div>
     </div>
     
+    <div class="modal fade" id="settings">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-dark">
+                    <h1 class="modal-title fs-5 text-light">Ayarlar</h1>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-dark">
+                    <div class="card card-body bg-dark text-light border-danger mt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input bg-danger" type="checkbox" role="switch" id="tfaswitch">
+                            <label class="form-check-label" for="tfaswitch">İki Adımlı Doğrulama</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-dark">
+                    <button id="personalizeButton" class="btn btn-danger btn-sm mt-2">Kişiselleştir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"
         integrity="sha512-ykZ1QQr0Jy/4ZkvKuqWn4iF3lqPZyij9iRv6sGqLRdTPkY69YX6+7wvVGmsdBbiIfN/8OdsI7HABjvEok6ZopQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="module" src="router.js"></script>
     <script type="module" src="code.js"></script>
 </body>
+
 </html>

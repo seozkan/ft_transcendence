@@ -3,7 +3,7 @@
 import { accessToken, csrfToken } from '../../code.js';
 import router from '../../router.js';
 
-export function init() {
+export function init(params) {
   document.getElementById("personalizeForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     event.stopPropagation();

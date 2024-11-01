@@ -9,6 +9,7 @@ services:
       - ./core:/code
     depends_on:
       - db
+      - redis
     networks:
       - webnet
     hostname: web
@@ -43,6 +44,14 @@ services:
     networks:
       - webnet
     hostname: nginx
+  
+  redis:
+    container_name: redis
+    image: redis:7.4.1
+    ports:
+      - "6379:6379"
+    networks:
+      - webnet
 
 volumes:
   postgres_data:

@@ -8,10 +8,13 @@ from io import BytesIO
 import base64
 
 class UserViewset(viewsets.ViewSet):
-    def get_user_info(self, request):
+    def get_user_info(self, request, *args, **kwargs):
+        username = kwargs.get('username')
+        if (username == 'null'):
+            username = request.user.username
         try:
             User = get_user_model()
-            user = User.objects.get(id=request.user.id)
+            user = User.objects.get(username=username)
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:

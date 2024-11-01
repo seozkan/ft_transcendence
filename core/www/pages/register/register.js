@@ -1,7 +1,7 @@
 import { csrfToken, showToastMessage } from '../../code.js';
 import router from '../../router.js';
 
-export function init() {
+export function init(params) {
     const registerForm = document.getElementById('registerForm');
 
     const registerFirstNameInput = document.getElementById('registerFirstNameInput')

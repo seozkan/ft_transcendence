@@ -1,20 +1,34 @@
 "use strict";
 
-import { accessToken, showToastMessage} from './code.js'; 
+import { accessToken, showToastMessage } from './code.js';
 
 class Router {
   constructor() {
     this.routes = [];
     this.currentRoute = null;
+    this.params = null;
   }
 
   addRoute(path, component) {
     this.routes.push({ path, component });
   }
 
-  navigate(path, replace = false) {
+  navigate(location, replace = false) {
+
+    const url = new URL(location, window.location.origin);
+    let path = url.pathname;
+    this.params = url.searchParams;
+
     const publicPaths = ['/', '/tfa', '/login', '/register'];
-    
+
+
+    if (publicPaths.includes(path)) {
+      const header = document.querySelector('header');
+      if (header) {
+        header.classList.add('d-none');
+      }
+    }
+
     if (!accessToken && !publicPaths.includes(path)) {
       showToastMessage('Bu sayfaya erişim yetkiniz bulunmamaktadır. Lütfen Giriş Yapınız!');
       path = '/';
@@ -35,12 +49,13 @@ class Router {
     }
   }
 
+
   async loadComponent() {
     const { component } = this.currentRoute;
     const main = document.querySelector('main');
     const header = document.querySelector('header');
 
-    if (main){
+    if (main) {
       main.remove();
     }
 
@@ -51,16 +66,19 @@ class Router {
     existingScripts.forEach(script => script.parentNode.removeChild(script));
 
     try {
+      // HTML
       const response = await fetch(`pages/${component}/${component}.html`);
       const html = await response.text();
       header.insertAdjacentHTML('afterend', html);
 
+      // CSS
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = `pages/${component}/${component}.css`;
       link.setAttribute('data-router', 'true');
       document.head.appendChild(link);
 
+      // JavaScript
       const script = document.createElement('script');
       script.type = 'module';
       script.src = `pages/${component}/${component}.js`;
@@ -68,13 +86,13 @@ class Router {
       script.addEventListener('load', () => {
         import(`./pages/${component}/${component}.js`).then(module => {
           if (module.init && typeof module.init === 'function') {
-            module.init();
+            module.init(this.params);
           }
         });
       });
       document.body.appendChild(script);
     } catch (error) {
-      console.error(`error loading component ${component}:`, error);
+      console.error(`Error loading component ${component}:`, error);
     }
   }
 }
@@ -88,20 +106,20 @@ router.addRoute('/404', '404');
 router.addRoute('/tfa', 'tfa');
 router.addRoute('/login', 'login');
 router.addRoute('/register', 'register');
+router.addRoute('/messages', 'messages');
 
-router.navigate(window.location.pathname, true);
+router.navigate(window.location, true);
 
 window.addEventListener('popstate', () => {
-  const currentPath = window.location.pathname;
-  router.navigate(currentPath, true);
+  const location = window.location;
+  router.navigate(location, true);
 });
 
 document.body.addEventListener('click', (event) => {
   if (event.target.tagName === 'A' && !event.target.hasAttribute('data-no-router')) {
     event.preventDefault();
-    const path = event.target.getAttribute('href');
-    console.log(`Link clicked: navigating to ${path}`);
-    router.navigate(path);
+    const location = event.target.href;
+    router.navigate(location);
   }
 });
 

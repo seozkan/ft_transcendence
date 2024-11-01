@@ -10,8 +10,7 @@ function getCookie(name) {
 export const accessToken = getCookie('access_token');
 export const csrfToken = getCookie('csrftoken');
 
-export async function getUserInfo() {
-
+export async function getUserInfo(username) {
     if (!accessToken) {
         console.error('error: access token is missing or invalid');
         return;
@@ -21,7 +20,7 @@ export async function getUserInfo() {
     }
 
     try {
-        const response = await fetch('https://localhost/api/user', {
+        const response = await fetch(`https://localhost/api/users/${username}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,

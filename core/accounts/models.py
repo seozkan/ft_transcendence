@@ -44,3 +44,52 @@ class CustomUser(AbstractUser):
     
     def __str__(self):
         return self.email
+
+    def add_friend(self, friend):
+        if not self.is_friend(friend):
+            Friendship.objects.create(from_user=self, to_user=friend)
+
+    def remove_friend(self, friend):
+        Friendship.objects.filter(from_user=self, to_user=friend).delete()
+
+    def is_friend(self, friend):
+        return Friendship.objects.filter(from_user=self, to_user=friend).exists()
+
+    def get_friends(self):
+        return CustomUser.objects.filter(friends__from_user=self)
+
+    def block_user(self, user):
+        if not self.is_blocking(user):
+            BlockedUser.objects.create(blocker=self, blocked=user)
+
+    def unblock_user(self, user):
+        BlockedUser.objects.filter(blocker=self, blocked=user).delete()
+
+    def is_blocking(self, user):
+        return BlockedUser.objects.filter(blocker=self, blocked=user).exists()
+
+    def get_blocked_users(self):
+        return CustomUser.objects.filter(blocked_by__blocker=self)
+
+class Friendship(models.Model):
+    from_user = models.ForeignKey(CustomUser, related_name='friendships', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(CustomUser, related_name='friends', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('from_user', 'to_user')
+
+    def __str__(self):
+        return f"{self.from_user.email} -> {self.to_user.email}"
+    
+
+class BlockedUser(models.Model):
+    blocker = models.ForeignKey(CustomUser, related_name='blocking', on_delete=models.CASCADE)
+    blocked = models.ForeignKey(CustomUser, related_name='blocked_by', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('blocker', 'blocked')
+
+    def __str__(self):
+        return f"{self.blocker.email} blocked {self.blocked.email}"

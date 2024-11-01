@@ -3,9 +3,11 @@
 import { getUserInfo, accessToken, csrfToken } from '../../code.js';
 import router from '../../router.js';
 
-export function init() {
-  async function displayUserInfo() {
-    const user = await getUserInfo();
+export function init(params) {
+  const username = params.get('username');
+  async function displayUserInfo(username) {
+
+    const user = await getUserInfo(username);
     const profileTextName = document.getElementById('profile-text-name');
     const profileTextUserName = document.getElementById('profile-text-username');
     const profileTextEmail = document.getElementById('profile-text-email');
@@ -22,12 +24,14 @@ export function init() {
   //Switch
   const switchElement = document.getElementById('tfaswitch');
   switchElement.addEventListener('change', async function () {
-    const bootstrapSwitch = new bootstrap.Modal(document.querySelector('.modal'), {
+    const bootstrapSwitchModal = new bootstrap.Modal(document.getElementById('tfaModal'), {
       keyboard: false,
       backdrop: 'static'
     });
     if (switchElement.checked) {
-      bootstrapSwitch.show();
+      const bootstrapSettingsModal = bootstrap.Modal.getInstance(document.getElementById('settings'));
+      bootstrapSettingsModal.hide();
+      bootstrapSwitchModal.show();
       await fetchQRCode();
     }
   });
@@ -78,8 +82,8 @@ export function init() {
         }
       } else {
         switchElement.disabled = true;
-        const bootstrapModal = bootstrap.Modal.getInstance(document.querySelector('.modal'));
-        bootstrapModal.hide();
+        const bootstrapSwitchModal = bootstrap.Modal.getInstance(document.getElementById('tfaModal'));
+        bootstrapSwitchModal.hide();
       }
     } catch (error) {
       console.error('error:', error);
@@ -111,8 +115,18 @@ export function init() {
   }
 
   document.getElementById('personalizeButton').addEventListener('click', (e) => {
-    e.preventDefault();
-    router.navigate('/personalize');
-  });
-  displayUserInfo();
+  e.preventDefault();
+
+  const settingsModal = document.getElementById('settings');
+  const bootstrapSettingsModal = settingsModal ? bootstrap.Modal.getInstance(settingsModal) : null;
+
+  if (bootstrapSettingsModal) {
+    bootstrapSettingsModal.hide();
+  }
+
+  router.navigate('/personalize');
+});
+
+
+  displayUserInfo(username);
 }
