@@ -107,6 +107,7 @@ router.addRoute('/tfa', 'tfa');
 router.addRoute('/login', 'login');
 router.addRoute('/register', 'register');
 router.addRoute('/messages', 'messages');
+router.addRoute('/pong', 'pong');
 
 router.navigate(window.location, true);
 

@@ -1,41 +1,45 @@
-<main class="d-flex flex-fill py-5">
+<main class="d-flex flex-fill py-5 bg-light text-dark">
     <div class="container">
-        <h2 class="text-center fw-light mt-5">Profil</h2>
-        <div class="row mt-5">
-            <div class="col mt-4">
-                <div class="card border border-danger bg-dark text-light">
-                    <div class="card-body position-relative">
-                        <img id="profile-image" src=""
-                            class="img-fluid position-absolute top-0 start-50 translate-middle border border-danger rounded-pill"
-                            style="height: 7rem;">
-                        <h5 id="profile-text-name" class="card-title fw-light mt-5"></h5>
-                        <h6 id="profile-text-username" class="card-subtitle fw-light mb-2"></h6>
-                        <h6 id="profile-text-email" class="card-subtitle fw-light mb-2"></h6>
+        <h2 class="text-center fw-light text-light mt-2">Profil</h2>
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6 mt-4">
+                <div class="card border-danger text-dark shadow card">
+                    <div class="card-body position-relative text-center p-4">
+                        <img id="profile-image" src="" 
+                             class="img-fluid position-absolute top-0 start-50 translate-middle border border-danger rounded-circle shadow" 
+                             style="height: 7rem; width: 7rem; object-fit: cover;">
+                        <div class="mt-5">
+                            <h5 id="profile-text-name" class="fw-light mb-1">Adınız</h5>
+                            <h6 id="profile-text-username" class="fw-light mb-2">@kullaniciadi</h6>
+                            <h6 id="profile-text-email" class="fw-light mb-2">ornek@example.com</h6>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="tfaModal">
+    <!-- Modal -->
+    <div class="modal fade" id="tfaModal" tabindex="-1" aria-labelledby="tfaModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark">
+            <div class="modal-content text-dark border-danger shadow card">
                 <div class="modal-header">
-                    <h5 class="modal-title">İki Adımlı Doğrulama Aktivasyonu</h5>
+                    <h5 class="modal-title" id="tfaModalLabel">İki Adımlı Doğrulama Aktivasyonu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="tfaInputForm" class="d-flex flex-column align-items-center modal-body p-0 px-3">
-                    <p class="p-0 m-0 my-3 align-self-center ">Qr kodunuzu kimlik doğrulama uygulamanıza okutunuz.</p>
-                    <img id="qr-code" src="" alt="QR Code" class="img-fluid" style="width: 12rem;">
-                    <input class="form-control form-control-sm m-3 p-2" type="password" name="tfa" id="tfaInput"
-                        placeholder="Doğrulama Kodu" required>
-                    <div class="invalid-feedback">
+                <form id="tfaInputForm" class="modal-body">
+                    <p class="text-center">QR kodunuzu kimlik doğrulama uygulamanıza okutunuz.</p>
+                    <div class="d-flex justify-content-center my-3">
+                        <img id="qr-code" src="" alt="QR Code" class="img-fluid rounded shadow" style="width: 12rem;">
+                    </div>
+                    <input class="form-control form-control-sm my-3 p-2" type="password" name="tfa" id="tfaInput"
+                           placeholder="Doğrulama Kodu" required>
+                    <div class="invalid-feedback text-center">
                         2FA Doğrulaması Başarısız!
                     </div>
-                    <div class="d-flex justify-content-beetween">
-                        <button id="rejectButton" type="button" class="btn btn-danger mx-1 mb-3"
-                            data-bs-dismiss="modal">İptal</button>
-                        <button type="submit" id="confirmButton" type="button"
-                            class="btn btn-success mx-1 mb-3">Onayla</button>
+                    <div class="d-flex justify-content-around mt-3">
+                        <button id="rejectButton" type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" id="confirmButton" class="btn btn-success">Onayla</button>
                     </div>
                 </form>
             </div>

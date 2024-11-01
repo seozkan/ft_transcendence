@@ -1,25 +1,39 @@
-<main class="d-flex flex-fill flex-column justify-content-center align-items-center">
-    <i class="fa-solid fa-star-of-life display-6 text-danger" ></i>
-    <h1 class="mb-3 fw-light">Kayıt Ol</h1>
-    <form id="registerForm" class="w-50">
-        <div class="mb-3">
-            <input id="registerFirstNameInput" type="text" class="form-control" placeholder="Adınız">
-            <div id="InvalidFirstName" class="invalid-feedback"></div>
+<main class="d-flex flex-fill flex-column  align-items-center bg-light py-5">
+  <div class="container justify-content-center"> 
+    <div class="text-center"> <i class="fa-solid fa-star-of-life fa-4x text-danger mb-4"></i> </div>
+    <h1 class="mb-4 fw-bold text-center">Kayıt Ol</h1> 
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-4"> 
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <form id="registerForm">
+              <div class="mb-3">
+                <label for="registerFirstNameInput" class="form-label">Adınız</label>
+                <input id="registerFirstNameInput" type="text" class="form-control" placeholder="Adınız">
+                <div id="InvalidFirstName" class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="registerLastNameInput" class="form-label">Soyadınız</label>
+                <input id="registerLastNameInput" type="text" class="form-control" placeholder="Soyadınız">
+                <div id="InvalidLastName" class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="registerEmailInput" class="form-label">Email</label>
+                <input id="registerEmailInput" type="email" class="form-control" placeholder="Email">
+                <div id="InvalidEmail" class="invalid-feedback"></div>
+              </div>
+              <div class="mb-3">
+                <label for="registerPassInput" class="form-label">Şifre</label>
+                <input id="registerPassInput" type="password" class="form-control" placeholder="Şifre">
+                <div id="InvalidPass" class="invalid-feedback"></div>
+              </div>
+              <div class="d-grid"> 
+                <button type="submit" class="btn btn-danger">Onayla</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div class="mb-3">
-            <input id="registerLastNameInput" type="text" class="form-control" placeholder="Soyadınız">
-            <div id="InvalidLastName" class="invalid-feedback"></div>
-        </div>
-        <div class="mb-3">
-            <input id="registerEmailInput" type="text" class="form-control" placeholder="Email">
-            <div id="InvalidEmail" class="invalid-feedback"></div>
-        </div>
-        <div class="mb-3">
-            <input id="registerPassInput" type="password" class="form-control" placeholder="Şifre">
-            <div id="InvalidPass" class="invalid-feedback"></div>
-        </div>
-        <div class="mb-3">
-            <button type="submit" class="btn btn-danger w-100">Onayla</button>
-        </div>
-    </form>
+      </div>
+    </div>
+  </div>
 </main>
