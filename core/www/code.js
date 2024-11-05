@@ -39,6 +39,27 @@ export async function getUserInfo(username) {
     }
 }
 
+export async function getUserName() {
+    try {
+        const response = await fetch(`https://localhost/api/get_username`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            console.error('network error:', response.status);
+        }
+
+        const data = await response.json();
+        return data.username;
+    } catch (error) {
+        console.error('error:', error);
+    }
+}
+
 export function isUserLoggedIn() {
     return !!accessToken;
 }
@@ -69,6 +90,7 @@ document.getElementById('logout').addEventListener('click', async () => {
     try {
 
         document.getElementById("offcanvasButton").classList.add("d-none")
+        const header = document.querySelector('header');
 
         const response = await fetch('https://localhost/accounts/logout', {
             method: 'GET',
@@ -78,6 +100,7 @@ document.getElementById('logout').addEventListener('click', async () => {
             console.error('network error: ' + response.status);
         }
 
+        header.classList.add('d-none');
         document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         showToastMessage('Çıkış Yapıldı!')

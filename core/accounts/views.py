@@ -68,10 +68,6 @@ class AuthViewset(viewsets.ViewSet):
                 response = redirect(f'https://localhost/tfa')
                 response.set_cookie('uuid', user.id)
                 return response
-            elif not (user.username):
-                response = redirect(f'https://localhost/personalize')
-                response.set_cookie('uuid', user.id)
-                return response
         except User.DoesNotExist:
             user = User.objects.create_user(
                 email=email,
@@ -84,10 +80,7 @@ class AuthViewset(viewsets.ViewSet):
         access_token = self.create_access_token(user.id)
         refresh_token = self.create_refresh_token(user.id)
         
-        if user.username:
-            response = redirect('https://localhost/profile')
-        else:
-            response = redirect('https://localhost/personalize')
+        response = redirect('https://localhost/profile')
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
         return response
@@ -180,7 +173,7 @@ class AuthViewset(viewsets.ViewSet):
                     access_token = self.create_access_token(user.id)
                     refresh_token = self.create_refresh_token(user.id)
 
-                    response = redirect('https://localhost/personalize')
+                    response = redirect('https://localhost/profile')
                     response.set_cookie('access_token', access_token)
                     response.set_cookie('refresh_token', refresh_token)
                     return response
@@ -191,7 +184,6 @@ class AuthViewset(viewsets.ViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    
     def user_logout(self, request):
         if request.user.is_authenticated:
             try:

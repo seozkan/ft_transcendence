@@ -14,7 +14,7 @@
 </head>
 
 <body class="d-flex bg-dark text-light flex-column vh-100">
-    <header class="d-flex justify-content-between fixed-top">
+    <header class="d-flex justify-content-between fixed-top d-none">
         <div class="d-flex align-items-center m-3">
             <i class="fa-solid fa-table-tennis-paddle-ball" style="font-size: xx-large;"></i>
             <h3 class="mb-0 ms-3 fw-light">Ping Pong</h3>
@@ -36,9 +36,27 @@
                     <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
                         <ul class="nav nav-pills flex-column">
                             <li class="nav-item mb-2">
+                                <a href="/pong" class="nav-link bg-light text-dark fw-light" data-link>
+                                    <i class="fa-solid fa-gamepad me-1" style="font-size: large;"></i>
+                                    Oyuna Başla
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
                                 <a href="/profile" class="nav-link bg-light text-dark fw-light" data-link>
                                     <i class="fa-solid fa-user me-1" style="font-size: large;"></i>
                                     Profil
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="/leaderboard" class="nav-link bg-light text-dark fw-light" data-link>
+                                    <i class="fa-solid fa-chess-king me-1" style="font-size: large;"></i>
+                                    Lider Tablosu
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="/messages" class="nav-link bg-light text-dark fw-light" data-link>
+                                    <i class="fa-solid fa-message me-1" style="font-size: large;"></i>
+                                    Mesajlar
                                 </a>
                             </li>
                             <li class="nav-item">

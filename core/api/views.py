@@ -1,7 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .serializers import UserSerializer
+from .serializers import UserSerializer, PlayerSerializer
+from accounts.models import Player
 import pyotp
 import qrcode
 from io import BytesIO
@@ -17,6 +18,15 @@ class UserViewset(viewsets.ViewSet):
             user = User.objects.get(username=username)
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def get_username(self, request):
+        try:
+            User = get_user_model()
+            user = User.objects.get(id = request.user.id)
+            serializer = UserSerializer(user)
+            return Response({'username' : serializer.data['username']}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'user not found.'}, status=status.HTTP_404_NOT_FOUND)
         
@@ -85,3 +95,38 @@ class UserViewset(viewsets.ViewSet):
             return Response({'success': 'username and avatar updated successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def add_friend(self, request):
+        friend_username = request.data.get('username')
+        User = get_user_model()
+        try:
+            user = User.objects.get(id = request.user.id)
+            friend = User.objects.get(username = friend_username)
+
+            if (user == friend):
+                return Response({'error': 'you cannot add yourself as a friend'}, status=status.HTTP_400_BAD_REQUEST)
+            if (not user.add_friend(friend)):
+                return Response({'error': 'already added as a friend'}, status=status.HTTP_409_CONFLICT)
+            return Response({'success': 'friend added successfully'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def is_friend(self, request):
+        friend_username = request.data.get('username')
+        User = get_user_model()
+        try:
+            user = User.objects.get(id = request.user.id)
+            friend = User.objects.get(username = friend_username)
+            return Response({'data' : user.is_friend(friend)})
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class PlayerViewSet(viewsets.ViewSet):
+    def get_all_player(self, request):
+        queryset = Player.objects.all().order_by('-score')
+        serializer = PlayerSerializer(queryset, many=True)
+        return Response(serializer.data)

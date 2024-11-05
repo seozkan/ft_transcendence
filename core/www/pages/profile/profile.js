@@ -1,9 +1,9 @@
 "use strict";
 
-import { getUserInfo, accessToken, csrfToken } from '../../code.js';
+import { getUserInfo, accessToken, csrfToken, showToastMessage } from '../../code.js';
 import router from '../../router.js';
 
-export function init(params) {
+export async function init(params) {
   const username = params.get('username');
   async function displayUserInfo(username) {
 
@@ -50,6 +50,88 @@ export function init(params) {
     if (switchElement.checked)
       switchElement.checked = false;
   });
+
+  //AddFriend
+  const addFriendButton = document.getElementById('addFriendButton');
+  const bootstrapFriendModal =  new bootstrap.Modal(document.getElementById('friendModal'));
+
+  addFriendButton.addEventListener('click', async () => {
+    if (isFriend) {
+      bootstrapFriendModal.show();
+    }
+    else {
+      await addFriend();
+    }
+  })
+
+  async function addFriend() {
+    const friendUsername = document.querySelector('#profile-text-username').innerText;
+    
+    try {
+      const response = await fetch('https://localhost/api/add_friend', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ username: friendUsername })
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.error('error: user not found.');
+        } else if (response.status == 400) {
+          showToastMessage('Kendinizi arkadaş olarak ekleyemezsiniz!');
+        } else {
+            const errorData = await response.json();
+            console.error('error:', errorData.error);
+        }
+      } else {
+        console.log('Friend added successfully');
+        addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i> Arkadaşlıktan Çıkar';
+        isFriend = true;
+      }
+    } catch (error) {
+      console.error('error:', error);
+    }
+  }
+
+  //isFriend
+  let isFriend;
+
+  async function checkIfFriend() {
+    const friendUsername = document.querySelector('#profile-text-username').innerText;
+
+    try {
+      const response = await fetch('https://localhost/api/is_friend', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ username: friendUsername })
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.error('error: user not found.');
+        } else {
+          const errorData = await response.json();
+          console.error('error:', errorData.error);
+        }
+      } else {
+        const data = await response.json();
+        isFriend = data.data;
+        if (isFriend) {
+          addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i> Arkadaşlıktan Çıkar';
+        }
+      }
+    } catch (error) {
+      console.error('error:', error);
+    }
+  }
 
   // Two Factor Authentication
   async function verifyTFA(tfaCode) {
@@ -128,5 +210,6 @@ export function init(params) {
 });
 
 
-  displayUserInfo(username);
+  await displayUserInfo(username);
+  await checkIfFriend();
 }

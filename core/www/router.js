@@ -1,6 +1,6 @@
 "use strict";
 
-import { accessToken, showToastMessage } from './code.js';
+import { accessToken, showToastMessage, getUserName } from './code.js';
 
 class Router {
   constructor() {
@@ -13,7 +13,7 @@ class Router {
     this.routes.push({ path, component });
   }
 
-  navigate(location, replace = false) {
+  async navigate(location, replace = false) {
 
     const url = new URL(location, window.location.origin);
     let path = url.pathname;
@@ -22,16 +22,23 @@ class Router {
     const publicPaths = ['/', '/tfa', '/login', '/register'];
 
 
-    if (publicPaths.includes(path)) {
+    if (!publicPaths.includes(path)) {
       const header = document.querySelector('header');
       if (header) {
-        header.classList.add('d-none');
+        header.classList.remove('d-none');
       }
     }
 
     if (!accessToken && !publicPaths.includes(path)) {
       showToastMessage('Bu sayfaya erişim yetkiniz bulunmamaktadır. Lütfen Giriş Yapınız!');
       path = '/';
+    }
+    else if (accessToken && !publicPaths.includes(path) && path !== '/personalize') {
+      const username = await getUserName();
+      if (username === null) {
+        showToastMessage('Kullanıcı adı seçmelisiniz!');
+        path = '/personalize';
+      }
     }
 
     const foundRoute = this.routes.find(route => route.path === path);
@@ -108,6 +115,7 @@ router.addRoute('/login', 'login');
 router.addRoute('/register', 'register');
 router.addRoute('/messages', 'messages');
 router.addRoute('/pong', 'pong');
+router.addRoute('/leaderboard', 'leaderboard');
 
 router.navigate(window.location, true);
 

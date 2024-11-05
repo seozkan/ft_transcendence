@@ -45,9 +45,16 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.email
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.is_superuser and not hasattr(self, 'player'):
+            Player.objects.create(player=self)
+
     def add_friend(self, friend):
         if not self.is_friend(friend):
             Friendship.objects.create(from_user=self, to_user=friend)
+            return True
+        return False
 
     def remove_friend(self, friend):
         Friendship.objects.filter(from_user=self, to_user=friend).delete()
@@ -70,6 +77,10 @@ class CustomUser(AbstractUser):
 
     def get_blocked_users(self):
         return CustomUser.objects.filter(blocked_by__blocker=self)
+    
+class Player(models.Model):
+    player = models.OneToOneField(CustomUser, related_name='player', on_delete=models.CASCADE)
+    score = models.IntegerField(default = 0)
 
 class Friendship(models.Model):
     from_user = models.ForeignKey(CustomUser, related_name='friendships', on_delete=models.CASCADE)
