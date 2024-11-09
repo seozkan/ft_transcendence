@@ -91,9 +91,9 @@ class Router {
       script.src = `pages/${component}/${component}.js`;
       script.setAttribute('data-router', 'true');
       script.addEventListener('load', () => {
-        import(`./pages/${component}/${component}.js`).then(module => {
+        import(`./pages/${component}/${component}.js`).then(async module => {
           if (module.init && typeof module.init === 'function') {
-            module.init(this.params);
+            await module.init(this.params);
           }
         });
       });
@@ -116,7 +116,7 @@ router.addRoute('/register', 'register');
 router.addRoute('/messages', 'messages');
 router.addRoute('/pong', 'pong');
 router.addRoute('/leaderboard', 'leaderboard');
-
+router.addRoute('/notification', 'notification');
 router.navigate(window.location, true);
 
 window.addEventListener('popstate', () => {

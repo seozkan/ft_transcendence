@@ -53,22 +53,22 @@ export async function init(params) {
 
   //AddFriend
   const addFriendButton = document.getElementById('addFriendButton');
-  const bootstrapFriendModal =  new bootstrap.Modal(document.getElementById('friendModal'));
+  const bootstrapFriendModal = new bootstrap.Modal(document.getElementById('friendModal'));
 
   addFriendButton.addEventListener('click', async () => {
     if (isFriend) {
       bootstrapFriendModal.show();
     }
     else {
-      await addFriend();
+      await sendFriendRequest();
     }
   })
 
-  async function addFriend() {
+  async function sendFriendRequest() {
     const friendUsername = document.querySelector('#profile-text-username').innerText;
-    
+
     try {
-      const response = await fetch('https://localhost/api/add_friend', {
+      const response = await fetch('https://localhost/api/send_friend_request', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -84,13 +84,12 @@ export async function init(params) {
         } else if (response.status == 400) {
           showToastMessage('Kendinizi arkadaş olarak ekleyemezsiniz!');
         } else {
-            const errorData = await response.json();
-            console.error('error:', errorData.error);
+          const errorData = await response.json();
+          console.error('error:', errorData.error);
         }
       } else {
-        console.log('Friend added successfully');
-        addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i> Arkadaşlıktan Çıkar';
-        isFriend = true;
+        console.log('Friend request send successfully');
+        addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i>Arkadaşlık İsteği Gönderildi';
       }
     } catch (error) {
       console.error('error:', error);
@@ -99,6 +98,7 @@ export async function init(params) {
 
   //isFriend
   let isFriend;
+  let isReq;
 
   async function checkIfFriend() {
     const friendUsername = document.querySelector('#profile-text-username').innerText;
@@ -123,15 +123,56 @@ export async function init(params) {
         }
       } else {
         const data = await response.json();
-        isFriend = data.data;
-        if (isFriend) {
-          addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i> Arkadaşlıktan Çıkar';
+        isFriend = data.isFriend;
+        isReq = data.isReq;
+        if (isReq) {
+          addFriendButton.innerHTML = '<i class="fa-solid fa-user-group ms-1"></i> Arkadaşlık İsteği Gönderildi';
+        }
+        else if (isFriend) {
+          addFriendButton.innerHTML = '<i class="fa-solid fa-user-group ms-1"></i> Arkadaşlıktan Çıkar';
+          isFriend = true;
+        }
+        else {
+          addFriendButton.innerHTML = '<i class="fa-solid fa-user-group ms-1"></i> Arkadaş Ekle';
         }
       }
     } catch (error) {
       console.error('error:', error);
     }
   }
+
+  //Remove Friend
+
+  document.getElementById('friendRemoveButton').addEventListener('click', async () => {
+    try {
+      const response = await fetch('https://localhost/api/remove_friend', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ username: username })
+      });
+
+      if (!response.ok) {
+        console.error('Network error:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log(data.success);
+        bootstrap.Modal.getInstance(document.getElementById('friendModal')).hide();
+        checkIfFriend();
+      } else {
+        console.error('Error:', data.error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  });
 
   // Two Factor Authentication
   async function verifyTFA(tfaCode) {
@@ -197,17 +238,17 @@ export async function init(params) {
   }
 
   document.getElementById('personalizeButton').addEventListener('click', (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const settingsModal = document.getElementById('settings');
-  const bootstrapSettingsModal = settingsModal ? bootstrap.Modal.getInstance(settingsModal) : null;
+    const settingsModal = document.getElementById('settings');
+    const bootstrapSettingsModal = settingsModal ? bootstrap.Modal.getInstance(settingsModal) : null;
 
-  if (bootstrapSettingsModal) {
-    bootstrapSettingsModal.hide();
-  }
+    if (bootstrapSettingsModal) {
+      bootstrapSettingsModal.hide();
+    }
 
-  router.navigate('/personalize');
-});
+    router.navigate('/personalize');
+  });
 
 
   await displayUserInfo(username);

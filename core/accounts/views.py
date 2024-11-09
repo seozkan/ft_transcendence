@@ -11,6 +11,7 @@ import uuid
 import pyotp
 import re
 from django.contrib.auth import authenticate
+from .models import Notification
 
 class AuthViewset(viewsets.ViewSet):
     def create_access_token(self, user_id):
@@ -193,3 +194,30 @@ class AuthViewset(viewsets.ViewSet):
                 return Response("error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response("No user is logged in", status=status.HTTP_400_BAD_REQUEST)
+
+
+class NotificationViewSet(viewsets.ViewSet):
+    def check_notifications(self, request):
+        try:
+            notifications = Notification.objects.filter(user=request.user, is_read=False)
+            if notifications.exists():
+                notifications_data = [
+                    {'id': n.id, 'message': n.message, 'type' : n.type ,'created_at': n.created_at}
+                    for n in notifications
+                ]
+                return Response({'notifications': notifications_data}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'no notifications'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def mark_as_read(self, request, pk=None):
+        try:
+            notification = Notification.objects.get(pk=pk, user=request.user)
+            notification.is_read = True
+            notification.save()
+            return Response({'message': 'Notification marked as read'}, status=status.HTTP_200_OK)
+        except Notification.DoesNotExist:
+            return Response({'error': 'Notification not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

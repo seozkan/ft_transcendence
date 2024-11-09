@@ -50,20 +50,36 @@ class CustomUser(AbstractUser):
         if not self.is_superuser and not hasattr(self, 'player'):
             Player.objects.create(player=self)
 
-    def add_friend(self, friend):
-        if not self.is_friend(friend):
-            Friendship.objects.create(from_user=self, to_user=friend)
+    def send_request(self, friend):
+        if not self.is_friend(friend) and not self.has_pending_friend_request(friend):
+            FriendRequest.objects.create(from_user=self, to_user=friend)
+            Notification.objects.create(user=friend, message=self.username, type='friend')
             return True
         return False
 
-    def remove_friend(self, friend):
-        Friendship.objects.filter(from_user=self, to_user=friend).delete()
+    def has_pending_friend_request(self, friend):
+        return FriendRequest.objects.filter(from_user=self, to_user=friend).exists()
+    
+    def reject_friend_request(self, friend_request):
+        if friend_request.to_user == self:
+            friend_request.delete()
+            return True
+        return False
 
     def is_friend(self, friend):
-        return Friendship.objects.filter(from_user=self, to_user=friend).exists()
+        if self == friend:
+            return False
+        return Friendship.objects.filter(
+            user1=min(self, friend, key=lambda x: x.id),
+            user2=max(self, friend, key=lambda x: x.id)
+        ).exists()
 
     def get_friends(self):
-        return CustomUser.objects.filter(friends__from_user=self)
+        friendships = Friendship.objects.filter(models.Q(user1=self) | models.Q(user2=self))
+        friends = []
+        for friendship in friendships:
+            friends.append(friendship.user2 if friendship.user1 == self else friendship.user1)
+        return friends
 
     def block_user(self, user):
         if not self.is_blocking(user):
@@ -83,8 +99,19 @@ class Player(models.Model):
     score = models.IntegerField(default = 0)
 
 class Friendship(models.Model):
-    from_user = models.ForeignKey(CustomUser, related_name='friendships', on_delete=models.CASCADE)
-    to_user = models.ForeignKey(CustomUser, related_name='friends', on_delete=models.CASCADE)
+    user1 = models.ForeignKey(CustomUser, related_name='friendship_initiated', on_delete=models.CASCADE)
+    user2 = models.ForeignKey(CustomUser, related_name='friendship_received', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (('user1', 'user2'), ('user2', 'user1'))
+
+    def __str__(self):
+        return f"{self.user1.email} <-> {self.user2.email}"
+
+class FriendRequest(models.Model):
+    from_user = models.ForeignKey(CustomUser, related_name='sent_friend_requests', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(CustomUser, related_name='received_friend_requests', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -92,7 +119,6 @@ class Friendship(models.Model):
 
     def __str__(self):
         return f"{self.from_user.email} -> {self.to_user.email}"
-    
 
 class BlockedUser(models.Model):
     blocker = models.ForeignKey(CustomUser, related_name='blocking', on_delete=models.CASCADE)
@@ -104,3 +130,16 @@ class BlockedUser(models.Model):
 
     def __str__(self):
         return f"{self.blocker.email} blocked {self.blocked.email}"
+    
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, related_name='notifications', on_delete=models.CASCADE)
+    message = models.CharField(max_length=1000)
+    type = models.CharField(max_length=20, default='normal')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def delete_notification(self):
+        self.delete()
+
+    def __str__(self):
+        return f"Notification for {self.user.email}: {self.message}"

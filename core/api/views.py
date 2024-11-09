@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, PlayerSerializer
-from accounts.models import Player
+from accounts.models import Player, FriendRequest , Friendship, Notification
 import pyotp
 import qrcode
 from io import BytesIO
@@ -96,17 +96,18 @@ class UserViewset(viewsets.ViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    def add_friend(self, request):
+    def send_friend_request(self, request):
         friend_username = request.data.get('username')
         User = get_user_model()
         try:
             user = User.objects.get(id = request.user.id)
             friend = User.objects.get(username = friend_username)
-
             if (user == friend):
                 return Response({'error': 'you cannot add yourself as a friend'}, status=status.HTTP_400_BAD_REQUEST)
-            if (not user.add_friend(friend)):
-                return Response({'error': 'already added as a friend'}, status=status.HTTP_409_CONFLICT)
+            if (user.has_pending_friend_request(friend)):
+                return Response({'error': 'friend request already sent'}, status=status.HTTP_409_CONFLICT)
+            else:
+                user.send_request(friend)
             return Response({'success': 'friend added successfully'}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -119,12 +120,89 @@ class UserViewset(viewsets.ViewSet):
         try:
             user = User.objects.get(id = request.user.id)
             friend = User.objects.get(username = friend_username)
-            return Response({'data' : user.is_friend(friend)})
+            isFriend = user.is_friend(friend)
+            isReq = user.has_pending_friend_request(friend)
+            return Response({'isFriend' : isFriend, 'isReq' : isReq})
         except User.DoesNotExist:
             return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+    
+    def accept_friend_request(self, request):
+        friend_username = request.data.get('username')
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=request.user.id)
+            friend = User.objects.get(username=friend_username)
+            friend_request = FriendRequest.objects.get(from_user=friend, to_user=user)
+            
+            if friend_request.to_user == user:
+                Friendship.objects.get_or_create(
+                    user1=min(user, friend_request.from_user, key=lambda x: x.id),
+                    user2=max(user, friend_request.from_user, key=lambda x: x.id)
+                )
+
+                friend_request.delete()
+
+                Notification.objects.filter(
+                    user=user, message=friend_request.from_user.username, type='friend'
+                ).delete()
+
+                return Response({'success': 'friend request approved'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'friend request not found'}, status=status.HTTP_404_NOT_FOUND)
+        except FriendRequest.DoesNotExist:
+            return Response({'error': 'friend request not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def reject_friend_request(self, request):
+        friend_username = request.data.get('username')
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=request.user.id)
+            friend = User.objects.get(username=friend_username)
+            friend_request = FriendRequest.objects.get(from_user=friend, to_user=user)
+            
+            if friend_request.to_user == user:
+                friend_request.delete()
+
+                Notification.objects.filter(
+                    user=user, message=friend_request.from_user.username, type='friend'
+                ).delete()
+
+                return Response({'success': 'friend request rejected'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'friend request not found'}, status=status.HTTP_404_NOT_FOUND)
+        except FriendRequest.DoesNotExist:
+            return Response({'error': 'friend request not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def remove_friend(self, request):
+        friend_username = request.data.get('username')
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=request.user.id)
+            friend = User.objects.get(username=friend_username)
+            friendship = Friendship.objects.filter(
+                user1=min(user, friend, key=lambda x: x.id),
+                user2=max(user, friend, key=lambda x: x.id)
+            )
+            if friendship.exists():
+                friendship.delete()
+                return Response({'success': 'friend removed successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'friendship not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class PlayerViewSet(viewsets.ViewSet):
     def get_all_player(self, request):
         queryset = Player.objects.all().order_by('-score')

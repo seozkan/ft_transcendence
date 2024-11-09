@@ -1,10 +1,11 @@
 from django.urls import path
-from .views import AuthViewset
+from .views import AuthViewset, NotificationViewSet
 
 urlpatterns = [
     path('intra', AuthViewset.as_view({'get': 'intra_login'})),
     path('tfa_login', AuthViewset.as_view({'post': 'tfa_login'})),
     path('logout', AuthViewset.as_view({'get': 'user_logout'})),
     path('user_register', AuthViewset.as_view({'post': 'user_register'})),
-    path('user_login', AuthViewset.as_view({'post': 'user_login'}))
+    path('user_login', AuthViewset.as_view({'post': 'user_login'})),
+    path('check_notifications', NotificationViewSet.as_view({'get': 'check_notifications'}))
 ]

@@ -108,3 +108,38 @@ document.getElementById('logout').addEventListener('click', async () => {
         console.error('error:', error);
     }
 })
+
+//Check Notifications
+async function updateNotifications() {
+    const notificationSpan = document.querySelector('#notification span');
+    try {
+        const response = await fetch('https://localhost/accounts/check_notifications', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            console.error('network error:', response.status);
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.notifications) {
+            notificationSpan.innerHTML = data.notifications.length;
+        } else {
+            notificationSpan.innerHTML = '0';
+        }
+    } catch (error) {
+        console.error('error:', error);
+    }
+}
+
+(async () => {
+    if (accessToken){
+        await updateNotifications();
+    }
+})();
