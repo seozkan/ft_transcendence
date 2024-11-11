@@ -1,9 +1,63 @@
-import { csrfToken } from '../../code.js';
+import { accessToken, csrfToken } from '../../code.js';
 
 export function init() {
     let roomId = null;
     const messages = document.getElementById('messages');
     messages.scrollTop = messages.scrollHeight;
+
+
+    async function getFriends() {
+        try {
+            const response = await fetch('https://localhost/api/get_friends', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const friends = await response.json();
+            const friendsList = document.querySelector('.card-body');
+            friendsList.innerHTML = '';
+
+            if (friends.length === 0) {
+                const noFriendsMessage = document.createElement('p');
+                noFriendsMessage.className = 'text-white text-center m-0';
+                noFriendsMessage.textContent = 'Mesajlaşmak için arkadaş ekleyin.';
+                friendsList.appendChild(noFriendsMessage);
+            }
+
+            friends.forEach(friend => {
+                const friendItem = document.createElement('ul');
+                friendItem.className = 'list-unstyled mb-0';
+                friendItem.innerHTML = `
+                    <li class="p-2 border-bottom" style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
+                      <a href="#!" class="d-flex justify-content-between link-light">
+                        <div class="d-flex flex-row">
+                          <img src="../avatars/default_avatar.jpg" alt="avatar"
+                            class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
+                          <div class="pt-1">
+                            <p class="fw-bold mb-0">${friend.username}</p>
+                            <p class="small text-white">Hello, Are you there?</p>
+                          </div>
+                        </div>
+                        <div class="pt-1">
+                          <p class="small text-white mb-1">Just now</p>
+                          <span class="badge bg-danger float-end">1</span>
+                        </div>
+                      </a>
+                    </li>
+                `;
+                friendsList.appendChild(friendItem);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
 
     async function getOrCreateRoom() {
         try {
@@ -28,8 +82,6 @@ export function init() {
             console.error('Error:', error);
         }
     }
-
-    getOrCreateRoom();
 
     const chatSocket = new WebSocket(
         'wss://'
@@ -83,4 +135,7 @@ export function init() {
         }));
         messageInputDom.value = '';
     };
+
+    getFriends();
+    getOrCreateRoom();
 }

@@ -1,4 +1,5 @@
 "use strict";
+import router from '../../router.js';
 
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -109,6 +110,13 @@ document.getElementById('logout').addEventListener('click', async () => {
     }
 })
 
+//Personalize Button
+document.getElementById('personalizeButton').addEventListener('click', (e) => {
+    bootstrap.Modal.getInstance(document.getElementById('settings')).hide();
+
+    router.navigate('/personalize');
+});
+
 //Check Notifications
 async function updateNotifications() {
     const notificationSpan = document.querySelector('#notification span');
@@ -139,7 +147,7 @@ async function updateNotifications() {
 }
 
 (async () => {
-    if (accessToken){
+    if (accessToken) {
         await updateNotifications();
     }
 })();

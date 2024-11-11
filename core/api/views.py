@@ -7,6 +7,7 @@ import pyotp
 import qrcode
 from io import BytesIO
 import base64
+from django.db import models
 
 class UserViewset(viewsets.ViewSet):
     def get_user_info(self, request, *args, **kwargs):
@@ -198,6 +199,21 @@ class UserViewset(viewsets.ViewSet):
                 return Response({'success': 'friend removed successfully'}, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'friendship not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get_friends(self, request):
+        try:
+            User = get_user_model()
+            user = User.objects.get(id=request.user.id)
+            friendships = Friendship.objects.filter(models.Q(user1=user) | models.Q(user2=user))
+            friends = []
+            for friendship in friendships:
+                friends.append(friendship.user2 if friendship.user1 == user else friendship.user1)
+            serializer = UserSerializer(friends, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

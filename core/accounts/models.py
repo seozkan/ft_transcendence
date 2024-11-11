@@ -74,13 +74,6 @@ class CustomUser(AbstractUser):
             user2=max(self, friend, key=lambda x: x.id)
         ).exists()
 
-    def get_friends(self):
-        friendships = Friendship.objects.filter(models.Q(user1=self) | models.Q(user2=self))
-        friends = []
-        for friendship in friendships:
-            friends.append(friendship.user2 if friendship.user1 == self else friendship.user1)
-        return friends
-
     def block_user(self, user):
         if not self.is_blocking(user):
             BlockedUser.objects.create(blocker=self, blocked=user)

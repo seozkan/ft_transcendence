@@ -1,3 +1,10 @@
+main {
+  background-color: black;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/11041.jpg');
+}
 .card {
     background-color: rgba(255, 255, 255, 0.7);
   }

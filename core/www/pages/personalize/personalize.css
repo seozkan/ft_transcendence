@@ -1,6 +1,8 @@
 main {
     background-color: black;
     background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
     background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/6080.jpg');
 }
 

@@ -237,20 +237,6 @@ export async function init(params) {
     }
   }
 
-  document.getElementById('personalizeButton').addEventListener('click', (e) => {
-    e.preventDefault();
-
-    const settingsModal = document.getElementById('settings');
-    const bootstrapSettingsModal = settingsModal ? bootstrap.Modal.getInstance(settingsModal) : null;
-
-    if (bootstrapSettingsModal) {
-      bootstrapSettingsModal.hide();
-    }
-
-    router.navigate('/personalize');
-  });
-
-
   await displayUserInfo(username);
   await checkIfFriend();
 }
