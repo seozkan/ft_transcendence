@@ -1,10 +1,11 @@
+"use strict";
+
 import { accessToken, csrfToken } from '../../code.js';
 
-export function init() {
+export async function init() {
     let roomId = null;
     const messages = document.getElementById('messages');
     messages.scrollTop = messages.scrollHeight;
-
 
     async function getFriends() {
         try {
@@ -136,6 +137,6 @@ export function init() {
         messageInputDom.value = '';
     };
 
-    getFriends();
-    getOrCreateRoom();
+    await getFriends();
+    await getOrCreateRoom();
 }

@@ -1,5 +1,43 @@
-"use strict";
-import router from '../../router.js';
+    "use strict";
+import Router from '../../router.js';
+
+export let router = null
+export let accessToken = null
+export let csrfToken = null
+
+document.addEventListener('DOMContentLoaded', async () => {
+    accessToken = getCookie('access_token');
+    csrfToken = getCookie('csrftoken');
+
+    router = new Router();
+
+    router.addRoute('/', 'home');
+    router.addRoute('/profile', 'profile');
+    router.addRoute('/personalize', 'personalize');
+    router.addRoute('/404', '404');
+    router.addRoute('/tfa', 'tfa');
+    router.addRoute('/login', 'login');
+    router.addRoute('/register', 'register');
+    router.addRoute('/messages', 'messages');
+    router.addRoute('/pong', 'pong');
+    router.addRoute('/leaderboard', 'leaderboard');
+    router.addRoute('/notification', 'notification');
+    
+    await router.navigate(window.location, true);
+
+    window.addEventListener('popstate', async () => {
+        const location = window.location;
+        await router.navigate(location, true);
+    });
+
+    document.body.addEventListener('click', async (event) => {
+        if (event.target.tagName === 'A' && !event.target.hasAttribute('data-no-router')) {
+            event.preventDefault();
+            const location = event.target.href;
+            await router.navigate(location);
+        }
+    });
+});
 
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -7,19 +45,7 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-// Variables
-export const accessToken = getCookie('access_token');
-export const csrfToken = getCookie('csrftoken');
-
 export async function getUserInfo(username) {
-    if (!accessToken) {
-        console.error('error: access token is missing or invalid');
-        return;
-    }
-    else {
-        document.getElementById("offcanvasButton").classList.remove("d-none")
-    }
-
     try {
         const response = await fetch(`https://localhost/api/users/${username}`, {
             method: 'GET',
@@ -61,10 +87,6 @@ export async function getUserName() {
     }
 }
 
-export function isUserLoggedIn() {
-    return !!accessToken;
-}
-
 // Sidebar
 document.querySelectorAll('.offcanvas-body ul a').forEach(link => {
     link.addEventListener('click', () => {
@@ -73,7 +95,6 @@ document.querySelectorAll('.offcanvas-body ul a').forEach(link => {
         offcanvas.hide();
     });
 });
-
 
 // Toast Message
 export const showToastMessage = (message) => {
@@ -89,8 +110,6 @@ export const showToastMessage = (message) => {
 //Logout
 document.getElementById('logout').addEventListener('click', async () => {
     try {
-
-        document.getElementById("offcanvasButton").classList.add("d-none")
         const header = document.querySelector('header');
 
         const response = await fetch('https://localhost/accounts/logout', {
@@ -111,10 +130,9 @@ document.getElementById('logout').addEventListener('click', async () => {
 })
 
 //Personalize Button
-document.getElementById('personalizeButton').addEventListener('click', (e) => {
+document.getElementById('personalizeButton').addEventListener('click', async (e) => {
     bootstrap.Modal.getInstance(document.getElementById('settings')).hide();
-
-    router.navigate('/personalize');
+    await router.navigate('/personalize');
 });
 
 //Check Notifications

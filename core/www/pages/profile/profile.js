@@ -1,7 +1,6 @@
 "use strict";
 
 import { getUserInfo, accessToken, csrfToken, showToastMessage } from '../../code.js';
-import router from '../../router.js';
 
 export async function init(params) {
   const username = params.get('username');

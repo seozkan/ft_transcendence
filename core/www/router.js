@@ -21,7 +21,6 @@ class Router {
 
     const publicPaths = ['/', '/tfa', '/login', '/register'];
 
-
     if (!publicPaths.includes(path)) {
       const header = document.querySelector('header');
       if (header) {
@@ -33,6 +32,7 @@ class Router {
       showToastMessage('Bu sayfaya erişim yetkiniz bulunmamaktadır. Lütfen Giriş Yapınız!');
       path = '/';
     }
+  
     else if (accessToken && !publicPaths.includes(path) && path !== '/personalize') {
       const username = await getUserName();
       if (username === null) {
@@ -45,7 +45,7 @@ class Router {
 
     if (foundRoute) {
       this.currentRoute = foundRoute;
-      this.loadComponent();
+      await this.loadComponent();
       if (replace) {
         history.replaceState(null, '', path);
       } else {
@@ -55,7 +55,6 @@ class Router {
       this.navigate('/404');
     }
   }
-
 
   async loadComponent() {
     const { component } = this.currentRoute;
@@ -104,32 +103,4 @@ class Router {
   }
 }
 
-const router = new Router();
-
-router.addRoute('/', 'home');
-router.addRoute('/profile', 'profile');
-router.addRoute('/personalize', 'personalize');
-router.addRoute('/404', '404');
-router.addRoute('/tfa', 'tfa');
-router.addRoute('/login', 'login');
-router.addRoute('/register', 'register');
-router.addRoute('/messages', 'messages');
-router.addRoute('/pong', 'pong');
-router.addRoute('/leaderboard', 'leaderboard');
-router.addRoute('/notification', 'notification');
-router.navigate(window.location, true);
-
-window.addEventListener('popstate', () => {
-  const location = window.location;
-  router.navigate(location, true);
-});
-
-document.body.addEventListener('click', (event) => {
-  if (event.target.tagName === 'A' && !event.target.hasAttribute('data-no-router')) {
-    event.preventDefault();
-    const location = event.target.href;
-    router.navigate(location);
-  }
-});
-
-export default router;
+export default Router;

@@ -1,7 +1,6 @@
 "use strict";
 
-import { accessToken } from '../../code.js';
-import router from '../../router.js';
+import { router, accessToken } from '../../code.js';
 
 export function init(params) {
     async function getAllPlayer() {
@@ -38,9 +37,9 @@ export function init(params) {
                 }
             });
 
-            tbody.addEventListener('click', (event) => {
+            tbody.addEventListener('click', async (event) => {
                 if (event.target.classList.contains('username')) {
-                    router.navigate(`/profile?username=${event.target.textContent}`);
+                    await router.navigate(`/profile?username=${event.target.textContent}`);
                 }
             });
         } catch (error) {

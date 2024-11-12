@@ -2,11 +2,11 @@
 
 import { csrfToken } from '../../code.js';
 
-export function init(params) {
-    document.getElementById('tfaButton').addEventListener('click', function (event) {
+export async function init(params) {
+    document.getElementById('tfaButton').addEventListener('click', async (event) => {
         event.preventDefault();
         const tfaCode = document.getElementById('password').value;
-        tfa_login(tfaCode);
+        await tfa_login(tfaCode);
     });
 
     async function tfa_login(tfaCode) {

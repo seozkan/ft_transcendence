@@ -1,7 +1,7 @@
 from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .models import Room, User
+from .models import Room, User, Message
 
 class ChatViewset(viewsets.ViewSet):
     def get_room(self, request):
@@ -17,3 +17,31 @@ class ChatViewset(viewsets.ViewSet):
             return Response({"room_id": room.id}, status=status.HTTP_201_CREATED)
         except User.DoesNotExist:
             return Response({"error": "Second user not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    def save_message(self, request):
+        try:
+            room = Room.objects.get(id=request.data.get('room_id'))
+            message = Message.objects.create(
+                user=request.user,
+                room=room,
+                content=request.data.get('content')
+            )
+            return Response({"message_id": message.id}, status=status.HTTP_201_CREATED)
+        except Room.DoesNotExist:
+            return Response({"error": "Room not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+    def get_messages(self, request):
+        try:
+            room = Room.objects.get(id=request.data.get('room_id'))
+            messages = Message.objects.filter(room=room).order_by('created_date')
+            messages_data = [
+                {
+                    "user": message.user.username,
+                    "content": message.content,
+                    "created_date": message.created_date
+                }
+                for message in messages
+            ]
+            return Response({"messages": messages_data}, status=status.HTTP_200_OK)
+        except Room.DoesNotExist:
+            return Response({"error": "Room not found"}, status=status.HTTP_404_NOT_FOUND)

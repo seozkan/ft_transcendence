@@ -1,7 +1,6 @@
-import { csrfToken, showToastMessage } from '../../code.js';
-import router from '../../router.js';
+import { router, csrfToken, showToastMessage } from '../../code.js';
 
-export function init(params) {
+export async function init(params) {
     const registerForm = document.getElementById('registerForm');
 
     const registerFirstNameInput = document.getElementById('registerFirstNameInput')
@@ -96,7 +95,7 @@ export function init(params) {
 
         if (response.ok) {
             showToastMessage('Başarıyla Kayıt Oldunuz. Giriş Yapınız!');
-            router.navigate('/');
+            await router.navigate('/');
         }
         else if (response.status == 400) {
             registerEmailInput.classList.remove('is-valid');

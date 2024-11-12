@@ -1,6 +1,8 @@
+"use strict";
+
 import { csrfToken, showToastMessage } from '../../code.js';
 
-export function init(params) {
+export async function init(params) {
     const loginForm = document.getElementById('loginForm');
 
     const loginEmailInput = document.getElementById('loginEmailInput');
