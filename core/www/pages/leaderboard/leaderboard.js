@@ -1,9 +1,11 @@
 "use strict";
 
-import { router, accessToken } from '../../code.js';
+import { router , getCookie } from '../../code.js';
 
-export function init(params) {
+export async function init(params) {
     async function getAllPlayer() {
+        const accessToken = getCookie('access_token');
+    
         const tbody = document.querySelector("tbody");
 
         if (!accessToken) {
@@ -20,11 +22,13 @@ export function init(params) {
                 }
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                console.error('network error:', response.status);
+                console.error('error:', data);
+                return;
             }
 
-            const data = await response.json();
             let i = data.length;
             data.forEach(element => {
                 if (element.username) {
@@ -47,5 +51,5 @@ export function init(params) {
         }
     }
 
-    getAllPlayer();
+    await getAllPlayer();
 }

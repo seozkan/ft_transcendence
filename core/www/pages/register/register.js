@@ -1,4 +1,4 @@
-import { router, csrfToken, showToastMessage } from '../../code.js';
+import { router, getCookie, showToastMessage } from '../../code.js';
 
 export async function init(params) {
     const registerForm = document.getElementById('registerForm');
@@ -82,9 +82,9 @@ export async function init(params) {
 
 
     async function user_register() {
-        const url = 'https://localhost/accounts/user_register';
+        const csrfToken = getCookie('csrftoken');
 
-        const response = await fetch(url, {
+        const response = await fetch('https://localhost/accounts/user_register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -73,15 +73,15 @@ class UserViewset(viewsets.ViewSet):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     #Personalize Funcs
-
     def update_ui(self, request):
         try:
             User = get_user_model()
             user = User.objects.get(id=request.user.id)
+
             avatar = request.data.get('avatar')
             username = request.data.get('username')
             
-            if not (username.isalnum() and len(username) > 3):
+            if not username.isalnum() and len(username) < 4:
                 return Response({'error': 'username must be alphanumeric and username length must be greater than three'}, status=status.HTTP_400_BAD_REQUEST)
             
             if User.objects.filter(username=username).exclude(id=user.id).exists():

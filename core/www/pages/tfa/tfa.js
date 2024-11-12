@@ -1,6 +1,6 @@
 "use strict";
 
-import { csrfToken } from '../../code.js';
+import { getCookie, router } from '../../code.js';
 
 export async function init(params) {
     document.getElementById('tfaButton').addEventListener('click', async (event) => {
@@ -10,24 +10,29 @@ export async function init(params) {
     });
 
     async function tfa_login(tfaCode) {
-        const url = 'https://localhost/accounts/tfa_login';
+        const csrfToken = getCookie('csrftoken');
+        try {
+            const response = await fetch('https://localhost/accounts/tfa_login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ tfaCode: tfaCode })
+            });
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ tfaCode: tfaCode })
-        });
+            const data = await response.json();
 
-        if (response.redirected) {
-            window.location.href = response.url;
-        } else {
-            const errorData = await response.json();
-            console.error('Error:', errorData.error);
-            document.getElementById('password').classList.add('is-invalid');
+            if (!response.ok) {
+                console.log('error:', data);
+                return;
+            } else {
+                document.cookie = `access_token=${data.access_token}; path=/;`;
+                await router.navigate('/profile');
+            }
+        }
+        catch (error) {
+            console.error('error:', error);
         }
     }
 }
-

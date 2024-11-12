@@ -66,9 +66,7 @@ class AuthViewset(viewsets.ViewSet):
         try:
             user = User.objects.get(email=email)
             if (user.isTfaActive):
-                response = redirect(f'https://localhost/tfa')
-                response.set_cookie('uuid', user.id)
-                return response
+                return Response({'uuid': user.id }, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             user = User.objects.create_user(
                 email=email,
@@ -98,10 +96,10 @@ class AuthViewset(viewsets.ViewSet):
                 access_token = self.create_access_token(user.id)
                 refresh_token = self.create_refresh_token(user.id)
 
-                response = redirect('https://localhost/profile')
-                response.set_cookie('access_token', access_token)
-                response.set_cookie('refresh_token', refresh_token)
-                return response
+                return Response({
+                    'access_token': access_token,
+                    'refresh_token': refresh_token
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'invalid TOTP code'}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
@@ -162,22 +160,20 @@ class AuthViewset(viewsets.ViewSet):
         User = get_user_model()
         try:
             user = authenticate(request, email=email, password=password)
-
+            
             if user is not None:
                 if user.isTfaActive:
-                    response = redirect(f'https://localhost/tfa')
-                    response.set_cookie('uuid', user.id)
-                    return response
+                     return Response({'uuid': user.id}, status=status.HTTP_200_OK)
                 else:
                     login(request, user)
 
                     access_token = self.create_access_token(user.id)
                     refresh_token = self.create_refresh_token(user.id)
 
-                    response = redirect('https://localhost/profile')
-                    response.set_cookie('access_token', access_token)
-                    response.set_cookie('refresh_token', refresh_token)
-                    return response
+                    return Response({
+                        'access_token': access_token,
+                        'refresh_token': refresh_token
+                    }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:

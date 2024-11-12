@@ -1,6 +1,6 @@
 "use strict";
 
-import { getUserInfo, accessToken, csrfToken, showToastMessage } from '../../code.js';
+import { getUserInfo, getCookie, showToastMessage } from '../../code.js';
 
 export async function init(params) {
   const username = params.get('username');
@@ -19,21 +19,6 @@ export async function init(params) {
     switchElement.checked = user.isTfaActive;
     switchElement.disabled = switchElement.checked;
   }
-
-  //Switch
-  const switchElement = document.getElementById('tfaswitch');
-  switchElement.addEventListener('change', async function () {
-    const bootstrapSwitchModal = new bootstrap.Modal(document.getElementById('tfaModal'), {
-      keyboard: false,
-      backdrop: 'static'
-    });
-    if (switchElement.checked) {
-      const bootstrapSettingsModal = bootstrap.Modal.getInstance(document.getElementById('settings'));
-      bootstrapSettingsModal.hide();
-      bootstrapSwitchModal.show();
-      await fetchQRCode();
-    }
-  });
 
   // Modal Buttons & Events
   const tfaInputForm = document.getElementById('tfaInputForm')
@@ -65,6 +50,8 @@ export async function init(params) {
 
   async function sendFriendRequest() {
     const friendUsername = document.querySelector('#profile-text-username').innerText;
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
 
     try {
       const response = await fetch('https://localhost/api/send_friend_request', {
@@ -83,9 +70,10 @@ export async function init(params) {
         } else if (response.status == 400) {
           showToastMessage('Kendinizi arkadaş olarak ekleyemezsiniz!');
         } else {
-          const errorData = await response.json();
-          console.error('error:', errorData.error);
+          const data = await response.json();
+          console.error('error:', data);
         }
+        return;
       } else {
         console.log('Friend request send successfully');
         addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i>Arkadaşlık İsteği Gönderildi';
@@ -101,6 +89,8 @@ export async function init(params) {
 
   async function checkIfFriend() {
     const friendUsername = document.querySelector('#profile-text-username').innerText;
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
 
     try {
       const response = await fetch('https://localhost/api/is_friend', {
@@ -113,15 +103,16 @@ export async function init(params) {
         body: JSON.stringify({ username: friendUsername })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
         if (response.status === 404) {
           console.error('error: user not found.');
         } else {
-          const errorData = await response.json();
-          console.error('error:', errorData.error);
+          console.error('error:', data);
         }
+        return;
       } else {
-        const data = await response.json();
         isFriend = data.isFriend;
         isReq = data.isReq;
         if (isReq) {
@@ -143,6 +134,9 @@ export async function init(params) {
   //Remove Friend
 
   document.getElementById('friendRemoveButton').addEventListener('click', async () => {
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
+
     try {
       const response = await fetch('https://localhost/api/remove_friend', {
         method: 'POST',
@@ -154,12 +148,12 @@ export async function init(params) {
         body: JSON.stringify({ username: username })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        console.error('Network error:', response.status);
+        console.error('error:', data);
         return;
       }
-
-      const data = await response.json();
 
       if (data.success) {
         console.log(data.success);
@@ -175,6 +169,9 @@ export async function init(params) {
 
   // Two Factor Authentication
   async function verifyTFA(tfaCode) {
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
+
     if (!accessToken) {
       console.error('Access token is missing or invalid');
       return;
@@ -202,37 +199,15 @@ export async function init(params) {
         } else {
           console.error('error: network error:', response.status);
         }
+        return;
       } else {
+        const switchElement = document.getElementById('tfaswitch');
         switchElement.disabled = true;
         const bootstrapSwitchModal = bootstrap.Modal.getInstance(document.getElementById('tfaModal'));
         bootstrapSwitchModal.hide();
       }
     } catch (error) {
       console.error('error:', error);
-    }
-  }
-
-  // QrCode
-  async function fetchQRCode() {
-    try {
-      const response = await fetch('https://localhost/api/generate_tfa', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        console.error('network Error:', response.status);
-        return;
-      }
-
-      const data = await response.json();
-      const base64Image = data.qrCode;
-      document.getElementById('qr-code').src = `data:image/png;base64,${base64Image}`;
-    } catch (error) {
-      console.error('Fetch error:', error);
     }
   }
 

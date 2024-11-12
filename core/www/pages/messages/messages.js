@@ -1,6 +1,6 @@
 "use strict";
 
-import { accessToken, csrfToken } from '../../code.js';
+import { getCookie } from '../../code.js';
 
 export async function init() {
     let roomId = null;
@@ -8,6 +8,8 @@ export async function init() {
     messages.scrollTop = messages.scrollHeight;
 
     async function getFriends() {
+        const accessToken = getCookie('access_token');
+
         try {
             const response = await fetch('https://localhost/api/get_friends', {
                 method: 'GET',
@@ -17,22 +19,24 @@ export async function init() {
                 }
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                console.error('error', data);
+                return;
             }
 
-            const friends = await response.json();
             const friendsList = document.querySelector('.card-body');
             friendsList.innerHTML = '';
 
-            if (friends.length === 0) {
+            if (data.length === 0) {
                 const noFriendsMessage = document.createElement('p');
                 noFriendsMessage.className = 'text-white text-center m-0';
                 noFriendsMessage.textContent = 'Mesajlaşmak için arkadaş ekleyin.';
                 friendsList.appendChild(noFriendsMessage);
             }
 
-            friends.forEach(friend => {
+            data.forEach(friend => {
                 const friendItem = document.createElement('ul');
                 friendItem.className = 'list-unstyled mb-0';
                 friendItem.innerHTML = `
@@ -61,6 +65,8 @@ export async function init() {
     }
 
     async function getOrCreateRoom() {
+        const csrfToken = getCookie('csrftoken');
+
         try {
             const response = await fetch('https://localhost/chat/get_room', {
                 method: 'POST',
@@ -73,11 +79,13 @@ export async function init() {
                 })
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                console.error('error', data);
+                return;
             }
 
-            const data = await response.json();
             roomId = data.room_id;
         } catch (error) {
             console.error('Error:', error);

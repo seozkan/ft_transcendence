@@ -1,6 +1,6 @@
 "use strict";
 
-import { accessToken, showToastMessage, getUserName } from './code.js';
+import { showToastMessage, getUserName, getCookie } from './code.js';
 
 class Router {
   constructor() {
@@ -14,6 +14,7 @@ class Router {
   }
 
   async navigate(location, replace = false) {
+    const accessToken = getCookie('access_token');
 
     const url = new URL(location, window.location.origin);
     let path = url.pathname;

@@ -1,6 +1,6 @@
 "use strict";
 
-import { csrfToken, showToastMessage } from '../../code.js';
+import { router, getCookie ,showToastMessage } from '../../code.js';
 
 export async function init(params) {
     const loginForm = document.getElementById('loginForm');
@@ -43,25 +43,40 @@ export async function init(params) {
     }
 
     async function user_login() {
-        const url = 'https://localhost/accounts/user_login';
+        const csrfToken = getCookie('csrftoken');
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ email: loginEmailInput.value, password: loginPassInput.value })
-        });
+        try {
+            const response = await fetch('https://localhost/accounts/user_login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: loginEmailInput.value, password: loginPassInput.value })
+            });
 
-        if (response.redirected) {
-            window.location.href = response.url;
-        } else if (response.status == 400) {
-            showToastMessage('Email adresiniz veya parolanız hatalı!')
-        }
-        else {
-            const errorData = await response.json();
-            console.error('Error:', errorData.error);
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    console.error('error: user not found.');
+                } else if (response.status == 400) {
+                    showToastMessage('Email adresiniz veya parolanız hatalı!')
+                } else {
+                    console.error('error:', data);
+                }
+                return;
+            } else {
+                if (data.access_token) {
+                    document.cookie = `access_token=${data.access_token}; path=/;`;
+                    await router.navigate('/profile');
+                } else if (data.uuid) {
+                    document.cookie = `uuid=${data.uuid}; path=/;`;
+                    await router.navigate('/tfa');
+                }
+            }
+        } catch (error) {
+            console.error('error:', error);
         }
     }
 

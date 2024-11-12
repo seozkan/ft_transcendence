@@ -1,9 +1,12 @@
 "use strict";
 
-import { accessToken, csrfToken } from '../../code.js';
+import { getCookie } from '../../code.js';
 
 export async function init(params) {
     async function acceptFriendRequest(username, notificationDiv) {
+        const accessToken = getCookie('access_token');
+        const csrfToken = getCookie('csrftoken');
+
         try {
             const response = await fetch('https://localhost/api/accept_friend_request', {
                 method: 'POST',
@@ -15,12 +18,12 @@ export async function init(params) {
                 body: JSON.stringify({ username: username })
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                console.error('Network error:', response.status);
+                console.error('error', data);
                 return;
             }
-
-            const data = await response.json();
 
             if (data.success) {
                 console.log('Friend request approved');
@@ -34,6 +37,9 @@ export async function init(params) {
     }
 
     async function rejectFriendRequest(username, notificationDiv) {
+        const accessToken = getCookie('access_token');
+        const csrfToken = getCookie('csrftoken');
+
         try {
             const response = await fetch('https://localhost/api/reject_friend_request', {
                 method: 'POST',
@@ -45,25 +51,27 @@ export async function init(params) {
                 body: JSON.stringify({ username: username })
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                console.error('Network error:', response.status);
+                console.error('error', data);
                 return;
             }
-
-            const data = await response.json();
 
             if (data.success) {
                 console.log('Friend request rejected');
                 await checkNotifications();
             } else {
-                console.error('Error:', data.error);
+                console.error('error:', data);
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('error:', error);
         }
     }
 
     async function checkNotifications() {
+        const accessToken = getCookie('access_token');
+
         try {
             const notificationBody = document.getElementById('notificationBody');
             const notificationSpan = document.querySelector('#notification span');
@@ -76,12 +84,12 @@ export async function init(params) {
                 }
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                console.error('Network error:', response.status);
+                console.error('error', data);
                 return;
             }
-
-            const data = await response.json();
 
             notificationBody.innerHTML = '';
             
