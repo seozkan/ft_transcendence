@@ -91,7 +91,7 @@ class UserViewset(viewsets.ViewSet):
             if avatar != 'undefined':
                 if user.avatar and user.avatar.name != 'avatars/default_avatar.jpg':
                     user.avatar.delete(save=False)
-                user.avatar.save(avatar.name, avatar)
+                user.avatar = avatar
             user.save()
             return Response({'success': 'username and avatar updated successfully'}, status=status.HTTP_200_OK)
         except Exception as e:

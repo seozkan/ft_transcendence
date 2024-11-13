@@ -66,7 +66,9 @@ class AuthViewset(viewsets.ViewSet):
         try:
             user = User.objects.get(email=email)
             if (user.isTfaActive):
-                return Response({'uuid': user.id }, status=status.HTTP_200_OK)
+                response = redirect('https://localhost/tfa')
+                response.set_cookie('uuid', user.id)
+                return response
         except User.DoesNotExist:
             user = User.objects.create_user(
                 email=email,

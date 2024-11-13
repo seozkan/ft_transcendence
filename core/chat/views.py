@@ -37,6 +37,7 @@ class ChatViewset(viewsets.ViewSet):
             messages_data = [
                 {
                     "user": message.user.username,
+                    "avatar" : message.user.avatar.url,
                     "content": message.content,
                     "created_date": message.created_date
                 }

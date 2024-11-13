@@ -24,13 +24,9 @@ export async function init(params) {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken
           },
-          body: JSON.stringify({
-            avatar: formData.get('avatar'),
-            username: formData.get('username')
-          })
+          body: formData
         });
 
         if (!response.ok) {
