@@ -1,13 +1,18 @@
 <main class="container mt-5">
     <div class="row justify-content-center mt-4">
         <div class="col-12 col-md-6 text-center">
-            <div class="score-board">
-                <h2>Score</h2>
-                <p>Player 1: <span id="player1-score">0</span></p>
-                <p>Player 2: <span id="player2-score">0</span></p>
+            <div id="score-board" class="score-board">
+                <h2>Skor</h2>
+                <p><span id="player1-label">Oyuncu 1</span>: <span id="player1-score">0</span></p>
+                <p><span id="player2-label">Oyuncu 2</span>: <span id="player2-score">0</span></p>
+                <p><span id="winner-label"></span></p>
+            </div>
+            <div id="counter-setup" style="display:none;">
+                <h3 id="counter-display"></h3>
             </div>
         </div>
     </div>
+    
     <div class="row justify-content-center">
         <div class="col">
             <div class="game-container"></div>
@@ -15,8 +20,31 @@
     </div>
     <div class="row justify-content-center mt-4">
         <div class="col-12 col-md-6 text-center">
-            <button id="singleplayer-btn" class="btn btn-primary mr-2">Singleplayer</button>
-            <button id="tournament-btn" class="btn btn-secondary">Tournament</button>
+            <button id="singleplayer-btn" class="btn btn-primary mr-2">Tek Oyunculu</button>
+            <button id="tournament-btn" class="btn btn-secondary mr-2">Çok Oyunculu</button>
+            <button id="settings-btn" class="btn btn-info">Ayarlar</button>
         </div>
+    </div>
+
+    <!-- Modal yapısı -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Oyun Ayarları</h3>
+
+            <label for="table-color">Masa Rengi:</label>
+            <input type="color" id="table-color" name="table-color" value="#00ff00"><br><br>
+
+            <label for="paddle-color">Paddle Rengi:</label>
+            <input type="color" id="paddle-color" name="paddle-color" value="#ff0000"><br><br>
+
+            <label for="paddle-length">Paddle Uzunluğu:</label>
+            <input type="range" id="paddle-length" name="paddle-length" min="0.5" max="1" value="4" step="0.1">
+            <p id="paddle-length-display" color="black">Uzunluk: 1</p>
+
+            <button id="save-settings" class="btn btn-primary mt-3">Kaydet</button>
+        </div>
+    </div>
+
     </div>
 </main>
