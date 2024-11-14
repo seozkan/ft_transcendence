@@ -12,6 +12,9 @@ urlpatterns = [
     path('accept_friend_request', UserViewset.as_view({'post': 'accept_friend_request'})),
     path('reject_friend_request', UserViewset.as_view({'post': 'reject_friend_request'})),
     path('remove_friend', UserViewset.as_view({'post': 'remove_friend'})),
+    path('block_user', UserViewset.as_view({'post': 'block_user'})),
+    path('unblock_user', UserViewset.as_view({'post': 'unblock_user'})),
+    path('get_blocked_users', UserViewset.as_view({'get': 'get_blocked_users'})),
     path('get_friends', UserViewset.as_view({'get': 'get_friends'})),
     path('get_all_player', PlayerViewSet.as_view({'get' : 'get_all_player'}))
 ]

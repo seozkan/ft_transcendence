@@ -1,10 +1,36 @@
 "use strict";
 
-import { getUserInfo, getCookie, showToastMessage } from '../../code.js';
+import { getUserInfo, getCookie, showToastMessage, router } from '../../code.js';
 
 export async function init(params) {
+  let isFriend;
+  let isReq;
+  let isBlocked;
+
   const username = params.get('username');
+  const buttonGroup = document.getElementById("buttonGroup");
+  const blockUserButton = document.getElementById('blockUserButton');
+  if (!username) {
+    buttonGroup.classList.add('d-none');
+  }
+
   async function displayUserInfo(username) {
+    const { blockers, blockeds } = await getBlockedUsers();
+
+    blockeds.forEach(user => {
+      if (username === user.blocker) {
+        buttonGroup.innerHTML = '<p class="text-center">Bu kullanıcı sizi engellediğinden profil sayfasını görüntüleyemezsiniz.</p>';
+        showToastMessage('Bu kullanıcı sizi engelledi.');
+        return;
+      }
+    });
+
+    blockers.forEach(user => {
+      if (username == user.blocked) {
+        isBlocked = true;
+        blockUserButton.innerHTML = '<i class="fa-solid fa-ban ms-1"></i> Engeli Kaldır';
+      }
+    });
 
     const user = await getUserInfo(username);
     const profileTextName = document.getElementById('profile-text-name');
@@ -40,7 +66,10 @@ export async function init(params) {
   const bootstrapFriendModal = new bootstrap.Modal(document.getElementById('friendModal'));
 
   addFriendButton.addEventListener('click', async () => {
-    if (isFriend) {
+    if (isBlocked) {
+      showToastMessage('Engellenmiş bir kullanıcı arkadaş olarak eklenemez!');
+    }
+    else if (isFriend) {
       bootstrapFriendModal.show();
     }
     else {
@@ -82,10 +111,6 @@ export async function init(params) {
       console.error('error:', error);
     }
   }
-
-  //isFriend
-  let isFriend;
-  let isReq;
 
   async function checkIfFriend() {
     const friendUsername = document.querySelector('#profile-text-username').innerText;
@@ -131,9 +156,7 @@ export async function init(params) {
     }
   }
 
-  //Remove Friend
-
-  document.getElementById('friendRemoveButton').addEventListener('click', async () => {
+  async function removeFriend() {
     const accessToken = getCookie('access_token');
     const csrfToken = getCookie('csrftoken');
 
@@ -160,11 +183,16 @@ export async function init(params) {
         bootstrap.Modal.getInstance(document.getElementById('friendModal')).hide();
         checkIfFriend();
       } else {
-        console.error('Error:', data.error);
+        console.error('error:', data);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('error:', error);
     }
+  }
+
+  //Remove Friend
+  document.getElementById('friendRemoveButton').addEventListener('click', async () => {
+    await removeFriend();
   });
 
   // Two Factor Authentication
@@ -210,6 +238,122 @@ export async function init(params) {
       console.error('error:', error);
     }
   }
+
+  // Block User
+
+  async function blockUser() {
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
+
+    try {
+      const response = await fetch('https://localhost/api/block_user', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ username: username })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('error:', data);
+        return;
+      }
+
+      if (data.success) {
+        blockUserButton.innerHTML = '<i class="fa-solid fa-ban ms-1"></i> Engeli Kaldır';
+        isBlocked = true;
+        await removeFriend();
+        isFriend = false;
+        showToastMessage('Kullanıcı engellendi.');
+      } else {
+        console.error('Error:', data.error);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  // Unblock User
+  async function unblockUser() {
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
+
+    try {
+      const response = await fetch('https://localhost/api/unblock_user', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ username: username })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('error:', data);
+        return;
+      }
+
+      if (data.success) {
+        blockUserButton.innerHTML = '<i class="fa-solid fa-ban ms-1"></i> Engelle';
+        isBlocked = false;
+        showToastMessage('Kullanıcının engeli kaldırıldı.');
+      } else {
+        console.error('error:', data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  blockUserButton.addEventListener('click', async () => {
+    if (isBlocked) {
+      await unblockUser();
+    } else {
+      await blockUser();
+    }
+  });
+
+  async function getBlockedUsers() {
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
+
+    try {
+      const response = await fetch('https://localhost/api/get_blocked_users', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('error:', data);
+        return;
+      }
+
+      return { blockeds: data.blockeds, blockers: data.blockers }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  // Send Message
+  document.getElementById('sendMessageButton').addEventListener('click', () => {
+    if (isFriend)
+      router.navigate('/messages');
+    else
+      showToastMessage('Arkadaşınız olmayan bir kullanıcıya mesaj gönderemezsiniz!');
+  });
 
   await displayUserInfo(username);
   await checkIfFriend();

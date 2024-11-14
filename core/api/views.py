@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, PlayerSerializer
-from accounts.models import Player, FriendRequest , Friendship, Notification
+from accounts.models import Player, FriendRequest , Friendship, Notification, BlockedUser
 import pyotp
 import qrcode
 from io import BytesIO
@@ -214,6 +214,51 @@ class UserViewset(viewsets.ViewSet):
                 friends.append(friendship.user2 if friendship.user1 == user else friendship.user1)
             serializer = UserSerializer(friends, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def block_user(self, request):
+        blocked_username = request.data.get('username')
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=request.user.id)
+            blocked_user = User.objects.get(username=blocked_username)
+            if user == blocked_user:
+                return Response({'error': 'you cannot block yourself'}, status=status.HTTP_400_BAD_REQUEST)
+            BlockedUser.objects.get_or_create(blocker=user, blocked=blocked_user)
+            return Response({'success': 'user blocked successfully'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def unblock_user(self, request):
+        blocked_username = request.data.get('username')
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=request.user.id)
+            blocked_user = User.objects.get(username=blocked_username)
+            blocked_instance = BlockedUser.objects.get(blocker=user, blocked=blocked_user)
+            blocked_instance.delete()
+            return Response({'success': 'user unblocked successfully'}, status=status.HTTP_200_OK)
+        except BlockedUser.DoesNotExist:
+            return Response({'error': 'blocked user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get_blocked_users(self, request):
+        try:
+            User = get_user_model()
+            user = User.objects.get(id=request.user.id)
+            blocked_users = BlockedUser.objects.filter(blocked=user)
+            blocker_users = BlockedUser.objects.filter(blocker=user)
+            blocked_list = [{'blocker' : blocked.blocker.username , 'blocked' : blocked.blocked.username} for blocked in blocked_users]
+            blocker_list = [{'blocker': blocker.blocker.username, 'blocked' : blocker.blocked.username} for blocker in blocker_users]
+            return Response({'blockeds' : blocked_list, 'blockers' : blocker_list }, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
