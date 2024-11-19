@@ -71,7 +71,7 @@ export async function init() {
                     const roomId = await getOrCreateRoom(friend.username);
                     await connectToChat(roomId);
                     await getMessages(roomId);
-                    setupSendMessage();
+                    setupSendMessage(roomId);
                 });
                 friendsList.appendChild(friendItem);
             });
@@ -80,7 +80,7 @@ export async function init() {
         }
     }
 
-    function setupSendMessage() {
+    function setupSendMessage(roomId) {
         const sendGroup = document.querySelector('#sendGroup textarea');
 
         sendGroup.focus();
@@ -91,15 +91,15 @@ export async function init() {
         };
 
         document.querySelector('#sendGroup button').onclick = async () => {
-            console.log('ok');
             const messageInputDom = document.querySelector('#sendGroup textarea');
             const message = messageInputDom.value;
-            if (chatSocket) {
+            if (chatSocket && messageInputDom.value !== '') {
                 chatSocket.send(JSON.stringify({
                     'message': message
                 }));
-                messageInputDom.value = '';
+                await saveMessage(roomId, message);
             }
+            messageInputDom.value = '';
         };
     }
 
@@ -201,7 +201,6 @@ export async function init() {
             `;
             messagesList.insertBefore(newMessage, messagesList.querySelector('#sendGroup'));
             messages.scrollTop = messages.scrollHeight;
-            await saveMessage(roomId, data.message);
         };
 
         chatSocket.onclose = function (e) {

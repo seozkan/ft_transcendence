@@ -35,26 +35,32 @@ class AuthViewset(viewsets.ViewSet):
         return refresh_token
     
     def get_intra_access_token(self, request):
-        code = request.query_params['code']
-        intra_auth_url = "https://api.intra.42.fr/oauth/token"
-        data = {
-                "grant_type": "authorization_code",
-                "client_id": settings.INTRA_UID,
-                "client_secret": settings.INTRA_SECRET,
-                "code": code,
-                "redirect_uri": "https://localhost/accounts/intra"
-            }
-        response = requests.post(intra_auth_url, data=data)
-        if response.status_code != 200:
-            return Response({'Error': 'Intra Auth Error'}, status=response.status_code)
-        intra_access_token = response.json().get("access_token")
-        return intra_access_token
+        try:
+            code = request.query_params['code']
+            intra_auth_url = "https://api.intra.42.fr/oauth/token"
+            data = {
+                    "grant_type": "authorization_code",
+                    "client_id": settings.INTRA_UID,
+                    "client_secret": settings.INTRA_SECRET,
+                    "code": code,
+                    "redirect_uri": "https://localhost/accounts/intra"
+                }
+            response = requests.post(intra_auth_url, data=data)
+            if response.status_code != 200:
+                return Response({'Error': 'Intra Auth Error'}, status=response.status_code)
+            intra_access_token = response.json().get("access_token")
+            return intra_access_token
+        except Exception as e:
+            return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     def get_intra_user_info(self, request):
-        intra_access_token = self.get_intra_access_token(request)
-        user_info_url = "https://api.intra.42.fr/v2/me"
-        headers = {'Authorization': f"Bearer {intra_access_token}"}
-        response = requests.get(user_info_url, headers=headers)
+        try:
+            intra_access_token = self.get_intra_access_token(request)
+            user_info_url = "https://api.intra.42.fr/v2/me"
+            headers = {'Authorization': f"Bearer {intra_access_token}"}
+            response = requests.get(user_info_url, headers=headers)
+        except Exception as e:
+            return Response({'Error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return response.json()
 
