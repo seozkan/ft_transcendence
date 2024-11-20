@@ -2,6 +2,9 @@ from django.db.models import Q
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Room, User, Message
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from datetime import datetime
 
 class ChatViewset(viewsets.ViewSet):
     def get_room(self, request):
@@ -46,3 +49,26 @@ class ChatViewset(viewsets.ViewSet):
             return Response({"messages": messages_data}, status=status.HTTP_200_OK)
         except Room.DoesNotExist:
             return Response({"error": "Room not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class NotificationViewSet(viewsets.ViewSet):
+    def send_notification(self, request):
+        try:
+            user = User.objects.get(username=request.data.get('username'))
+            
+            notification_data = {
+                'type': 'notify',
+                'title': request.data.get('title'),
+                'message': request.data.get('message'),
+                'timestamp': datetime.now().isoformat(),
+                'data': request.data.get('data', {})
+            }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{user.username}',
+                notification_data
+            )
+
+            return Response({'status': 'notification sent'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'username not found'}, status=status.HTTP_404_NOT_FOUND)

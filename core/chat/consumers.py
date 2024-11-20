@@ -43,3 +43,36 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'user': user,
             'avatar': avatar
         }))
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        if self.scope["user"].is_anonymous:
+            await self.close()
+            return
+
+        self.notification_group_name = f'notifications_{self.scope["user"].username}'
+
+        await self.channel_layer.group_add(
+            self.notification_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'notification_group_name'):
+            await self.channel_layer.group_discard(
+                self.notification_group_name,
+                self.channel_name
+            )
+
+    async def notify(self, event):
+        message_data = {
+            'type': 'notification',
+            'title': event.get('title'),
+            'message': event.get('message'),
+            'timestamp': event.get('timestamp'),
+            'data': event.get('data', {})
+        }
+
+        await self.send(text_data=json.dumps(message_data))

@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
+
 export function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -100,9 +101,12 @@ document.querySelectorAll('.offcanvas-body ul a').forEach(link => {
 });
 
 // Toast Message
-export const showToastMessage = (message) => {
+export const showToastMessage = (header = 'Bildirim', message) => {
     const toast = document.querySelector('.toast');
+    const header_text = document.querySelector('.toast .toast-header h6');
+
     if (toast) {
+        header_text.innerHTML = header;
         document.querySelector('.toast .toast-body').innerHTML = message;
         new bootstrap.Toast(toast).show();
     } else {
@@ -220,3 +224,54 @@ async function updateNotifications() {
         await updateNotifications();
     }
 })();
+
+// Notification Socket
+const notificationSocket = new WebSocket(
+    'wss://' + window.location.host + '/ws/notifications/'
+);
+
+notificationSocket.onmessage = function(e) {
+    const notification = JSON.parse(e.data);
+    
+    if (notification.type === 'notification') {
+        showToastMessage(notification.title , notification.message);
+    }
+};
+
+notificationSocket.onerror = function(e) {
+    console.error('notifiy socket error:', e);
+};
+
+notificationSocket.onclose = function(e) {
+    console.log('notifiy socket connection closed');
+};
+
+async function sendNotification(username, title, message, data = {}) {
+    const csrfToken = getCookie('csrftoken');
+
+    try {
+        const response = await fetch('https://localhost/chat/send_notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+              },
+            body: JSON.stringify({
+                username: username,
+                title: title,
+                message: message,
+                data: data
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Bildirim gönderilemedi');
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Bildirim gönderme hatası:', error);
+        throw error;
+    }
+}
