@@ -104,7 +104,7 @@ export async function init(params) {
         }
         return;
       } else {
-        console.log('Friend request send successfully');
+        console.log('friend request send successfully');
         addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i>Arkadaşlık İsteği Gönderildi';
       }
     } catch (error) {

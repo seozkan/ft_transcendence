@@ -26,7 +26,7 @@ export async function init(params) {
             }
 
             if (data.success) {
-                console.log('Friend request approved');
+                console.log('friend request approved');
                 await checkNotifications();
             } else {
                 console.error('Error:', data.error);
@@ -59,7 +59,7 @@ export async function init(params) {
             }
 
             if (data.success) {
-                console.log('Friend request rejected');
+                console.log('friend request rejected');
                 await checkNotifications();
             } else {
                 console.error('error:', data);

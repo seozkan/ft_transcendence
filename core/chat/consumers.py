@@ -1,5 +1,6 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from datetime import datetime
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -76,3 +77,51 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         }
 
         await self.send(text_data=json.dumps(message_data))
+
+    async def invite(self, event):
+        message_data = {
+            'type': 'invite',
+            'title': event.get('title'),
+            'message': event.get('message'),
+            'timestamp': event.get('timestamp'),
+            'data': event.get('data', {})
+        }
+        
+        await self.send(text_data=json.dumps(message_data))
+
+    async def invite_accepted(self, event):
+        message_data = {
+            'type': 'invite_accepted',
+            'title': event.get('title'),
+            'message': event.get('message'),
+            'timestamp': event.get('timestamp'),
+            'data': event.get('data', {})
+        }
+        
+        await self.send(text_data=json.dumps(message_data))
+
+    async def receive(self, text_data):
+        try:
+            data = json.loads(text_data)
+            notification_type = data.get('type')
+            target_username = data.get('username')
+            title = data.get('title')
+            message = data.get('message')
+            extra_data = data.get('data', {})
+
+            target_group_name = f'notifications_{target_username}'
+            
+            await self.channel_layer.group_send(
+                target_group_name,
+                {
+                    'type': notification_type,
+                    'title': title,
+                    'message': message,
+                    'data': extra_data,
+                    'timestamp': datetime.now().isoformat()
+                }
+            )
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({
+                'error': 'Invalid JSON format'
+            }))

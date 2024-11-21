@@ -1,7 +1,8 @@
 "use strict";
 import Router from '../../router.js';
 
-export let router = null
+export let router = null;
+export let notificationSocket = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     router = new Router();
@@ -101,17 +102,55 @@ document.querySelectorAll('.offcanvas-body ul a').forEach(link => {
 });
 
 // Toast Message
-export const showToastMessage = (header = 'Bildirim', message) => {
-    const toast = document.querySelector('.toast');
-    const header_text = document.querySelector('.toast .toast-header h6');
-
+export const showToastMessage = (message) => {
+    const toast = document.querySelector('#toastMessage');
     if (toast) {
-        header_text.innerHTML = header;
-        document.querySelector('.toast .toast-body').innerHTML = message;
+        toast.querySelector('.toast-body').innerHTML = message;
         new bootstrap.Toast(toast).show();
     } else {
         console.error('error: toast element not found');
     }
+};
+
+// Invite Message
+export const showInviteMessage = async (header = 'Bildirim', message, notification) => {
+    const toast = document.querySelector('#inviteMessage');
+    const header_text = toast.querySelector('.toast-header h6');
+    const username = await getUserName();
+
+    header_text.innerHTML = header;
+    const toastBody = toast.querySelector('.toast-body');
+    
+    const buttons = `
+        <div>${message}</div>
+        <div class="mt-2">
+            <button class="btn btn-light btn-sm me-2" id="acceptInvite">Kabul Et</button>
+            <button class="btn btn-light btn-sm" data-bs-dismiss="toast">Reddet</button>
+        </div>
+    `;
+    toastBody.innerHTML = buttons;
+    
+    document.getElementById('acceptInvite').addEventListener('click', async () => {
+        const toastInstance = bootstrap.Toast.getInstance(toast);
+        toastInstance.hide();
+        
+        
+        if (notification.data && notification.data.sender) {
+            await notificationSocket.send(JSON.stringify({
+                'type': 'invite_accepted',
+                'username': notification.data.sender,
+                'title': 'Davet Kabul Edildi',
+                'message': `${username} oyun davetinizi kabul etti`,
+                'data': {
+                    'sender': username,
+                    'roomId' : notification.data.roomId
+                }
+            }));
+            await router.navigate(`/pong?room=${notification.data.roomId}`);
+        }
+    });
+
+    new bootstrap.Toast(toast).show();
 };
 
 //Logout
@@ -134,6 +173,7 @@ document.getElementById('logout').addEventListener('click', async () => {
         document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         showToastMessage('Çıkış Yapıldı!')
+        await ConnectNotificationSocket();
     } catch (error) {
         console.error('error:', error);
     }
@@ -171,7 +211,6 @@ async function fetchQRCode() {
     }
 }
 
-
 //Switch
 const switchElement = document.getElementById('tfaswitch');
 switchElement.addEventListener('change', async function () {
@@ -190,6 +229,7 @@ switchElement.addEventListener('change', async function () {
 //Check Notifications
 async function updateNotifications() {
     const accessToken = getCookie('access_token');
+    if (!accessToken) return;
 
     const notificationSpan = document.querySelector('#notification span');
     try {
@@ -201,20 +241,16 @@ async function updateNotifications() {
             }
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
             console.error('network error:', data);
             return;
         }
 
-        if (data.notifications) {
-            notificationSpan.innerHTML = data.notifications.length;
-        } else {
-            notificationSpan.innerHTML = '0';
-        }
+        const data = await response.json();
+        notificationSpan.innerHTML = data.notifications ? data.notifications.length : '0';
     } catch (error) {
-        console.error('error:', error);
+        console.warn('Bildirimler kontrol edilirken hata oluştu:', error);
+        notificationSpan.innerHTML = '0';
     }
 }
 
@@ -225,53 +261,59 @@ async function updateNotifications() {
     }
 })();
 
-// Notification Socket
-const notificationSocket = new WebSocket(
-    'wss://' + window.location.host + '/ws/notifications/'
-);
-
-notificationSocket.onmessage = function(e) {
-    const notification = JSON.parse(e.data);
-    
-    if (notification.type === 'notification') {
-        showToastMessage(notification.title , notification.message);
+async function initializeNotificationSocket() {
+    if (notificationSocket && notificationSocket.readyState === WebSocket.OPEN) {
+        console.log('Notification socket already connected');
+        return notificationSocket;
     }
-};
 
-notificationSocket.onerror = function(e) {
-    console.error('notifiy socket error:', e);
-};
+    if (notificationSocket) {
+        notificationSocket.close();
+    }
 
-notificationSocket.onclose = function(e) {
-    console.log('notifiy socket connection closed');
-};
+    notificationSocket = new WebSocket(
+        'wss://' + window.location.host + '/ws/notifications/'
+    );
 
-async function sendNotification(username, title, message, data = {}) {
-    const csrfToken = getCookie('csrftoken');
+    notificationSocket.onopen = function() {
+        console.log('notification socket connection successful');
+    };
 
-    try {
-        const response = await fetch('https://localhost/chat/send_notification', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-              },
-            body: JSON.stringify({
-                username: username,
-                title: title,
-                message: message,
-                data: data
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Bildirim gönderilemedi');
+    notificationSocket.onmessage = async function (e) {
+        const notification = JSON.parse(e.data);
+        
+        if (notification.type === 'invite_accepted' || notification.type === 'invite') {
+            if(notification.type === 'invite') {
+                await showInviteMessage(notification.title, notification.message, notification);
+            }
+            if (notification.type === 'invite_accepted') {
+                await router.navigate(`/pong?room=${notification.data.roomId}`);
+                showToastMessage('Davet Kabul Edildi!');
+            }
+            return;
         }
+    };
 
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('Bildirim gönderme hatası:', error);
-        throw error;
+    notificationSocket.onerror = function (e) {
+        console.error('notifiy socket error:', e);
+    };
+
+    notificationSocket.onclose = function (e) {
+        console.log('notification socket connection closed');
+    };
+
+    return notificationSocket;
+}
+
+export async function ConnectNotificationSocket() {
+    const accessToken = getCookie('access_token');
+    
+    if (accessToken) {
+        if (!notificationSocket || notificationSocket.readyState !== WebSocket.OPEN) {
+            notificationSocket = await initializeNotificationSocket();
+        }
+    } else if (notificationSocket) {
+        notificationSocket.close();
+        notificationSocket = null;
     }
 }

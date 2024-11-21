@@ -1,9 +1,9 @@
 "use strict";
-
-import { getCookie } from '../../code.js';
+import { getCookie , getUserName, notificationSocket} from '../../code.js';
 
 export async function init() {
     let chatSocket = null;
+    const username = await getUserName();
     const messages = document.getElementById('messages');
     messages.scrollTop = messages.scrollHeight;
 
@@ -71,7 +71,7 @@ export async function init() {
                     const roomId = await getOrCreateRoom(friend.username);
                     await connectToChat(roomId);
                     await getMessages(roomId);
-                    setupSendMessage(roomId);
+                    setupSendMessage(roomId, friend.username);
                 });
                 friendsList.appendChild(friendItem);
             });
@@ -80,26 +80,49 @@ export async function init() {
         }
     }
 
-    function setupSendMessage(roomId) {
+    function setupSendMessage(roomId, friendUsername) {
         const sendGroup = document.querySelector('#sendGroup textarea');
+        const sendButton = document.querySelector('#sendButton');
+        const inviteButton = document.querySelector('#inviteButton');
+
+        sendButton.disabled = true;
 
         sendGroup.focus();
+
+        sendGroup.addEventListener('input', () => {
+            sendButton.disabled = sendGroup.value.trim() === '';
+        });
+        
         sendGroup.onkeyup = function (e) {
-            if (e.key === 'Enter') {
-                document.querySelector('#sendGroup button').click();
+            if (e.key === 'Enter' && sendGroup.value.trim() !== '') {
+                sendButton.click();
             }
         };
 
-        document.querySelector('#sendGroup button').onclick = async () => {
+        sendButton.onclick = async () => {
             const messageInputDom = document.querySelector('#sendGroup textarea');
-            const message = messageInputDom.value;
-            if (chatSocket && messageInputDom.value !== '') {
+            const message = messageInputDom.value.trim();
+            if (chatSocket && message !== '') {
                 chatSocket.send(JSON.stringify({
                     'message': message
                 }));
                 await saveMessage(roomId, message);
             }
             messageInputDom.value = '';
+            sendButton.disabled = true;
+        };
+
+        inviteButton.onclick = async () => {
+            await notificationSocket.send(JSON.stringify({
+                'type': 'invite',
+                'username': friendUsername,
+                'title': 'Oyuna Davet',
+                'message': `${username} sizi oyuna davet ediyor`,
+                'data': {
+                    'sender': username,
+                    'roomId': crypto.randomUUID()
+                }
+            }));
         };
     }
 
@@ -153,7 +176,8 @@ export async function init() {
                 <li id="sendGroup" class="ms-5">
                   <div data-mdb-input-init class="form-outline form-white">
                     <textarea class="form-control" rows="4"></textarea>
-                    <button type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-light btn-rounded float-end mt-3">Gönder</button>
+                    <button id="sendButton" type="button" class="btn btn-light btn-rounded float-end mt-3" disabled>Gönder</button>
+                    <button id="inviteButton" type="button" class="btn btn-dark btn-rounded float-end mt-3 me-2">Oyuna Davet Et</button>
                   </div>
                 </li>
             `
@@ -167,6 +191,7 @@ export async function init() {
     async function connectToChat(roomId) {
         if (chatSocket) {
             chatSocket.close();
+            chatSocket = null;
         }
 
         chatSocket = new WebSocket(
@@ -260,6 +285,13 @@ export async function init() {
             console.error('Error:', error);
         }
     }
+
+    window.currentCleanup = () => {
+        if (chatSocket) {
+            chatSocket.close();
+            chatSocket = null;
+        }
+    };
 
     await getFriends();
 }

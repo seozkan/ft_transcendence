@@ -40,12 +40,12 @@
                 <div class="offcanvas-body text-light">
                     <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
                         <ul class="nav nav-pills flex-column">
-                            <li class="nav-item mb-2">
+                            <!-- <li class="nav-item mb-2">
                                 <a href="/pong" class="nav-link bg-light text-dark fw-light" data-link>
                                     <i class="fa-solid fa-gamepad me-1" style="font-size: large;"></i>
                                     Oyuna Başla
                                 </a>
-                            </li>
+                            </li> -->
                             <li class="nav-item mb-2">
                                 <a href="/profile" class="nav-link bg-light text-dark fw-light" data-link>
                                     <i class="fa-solid fa-user me-1" style="font-size: large;"></i>
@@ -78,7 +78,20 @@
         </div>
     </header>
 
-    <div class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger" role="alert">
+    <!-- TOAST Message -->
+    <div id="toastMessage" class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger" role="alert">
+        <div class="toast-header">
+            <i class="fa-regular fa-bell me-1"></i>
+            <h6 class="text-body-secondary fw-light m-0 me-auto">Bildirim</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+        </div>
+    </div>
+
+
+    <!-- INVITE Message -->
+    <div id="inviteMessage" class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger" role="alert">
         <div class="toast-header">
             <i class="fa-regular fa-bell me-1"></i>
             <h6 class="text-body-secondary fw-light m-0 me-auto"></h6>

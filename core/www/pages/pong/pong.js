@@ -1,18 +1,22 @@
-import { getUserName } from '../../code.js';
+import { getUserName, router } from '../../code.js';
 
 export async function init(params) {
     const username = await getUserName();
-    const roomId = 'test';
-    let playerSide = null;
+    const roomId = params.get('room');
+    if (!roomId) {
+        alert("Oda numarası bulunamadı!");
+        router.navigate('/profile');
+        return;
+    }
 
-    const gameSocket = new WebSocket(
+    let playerSide = null;
+    let gameSocket = null;
+
+    gameSocket = new WebSocket(
         'wss://'
         + window.location.host
         + '/ws/game/'
         + roomId
-        + '/'
-        + username
-        + '/'
     );
 
     const scene = new THREE.Scene();
@@ -64,7 +68,7 @@ export async function init(params) {
     renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.toneMappingExposure = 1.1;
 
-    camera.position.set(0, 8, 65);
+    camera.position.set(0, 13, 65);
     camera.lookAt(0, 0, 0);
 
     window.addEventListener('resize', () => {
@@ -244,8 +248,14 @@ export async function init(params) {
 
 
     gameSocket.onopen = () => {
-        console.log('webSocket connection established.');
+        console.log('gamesocket connection established.');
+        gameSocket.send(JSON.stringify({
+            type: 'initialize',
+            username: username
+        }));
     };
+
+    let gameActive = false;
 
     gameSocket.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -259,6 +269,7 @@ export async function init(params) {
 
             case 'player_disconnected':
                 alert("Opponent has left the game! Game is ending...");
+                router.navigate('/profile');
                 break;
 
             case 'ball_update':
@@ -277,26 +288,38 @@ export async function init(params) {
                 break;
 
             case 'score_update':
-                console.log(`Score: Left Player - ${data.scores["left"]}, Right Player - ${data.scores["right"]}`);
+                console.log(`Score: Sol Oyuncu - ${data.scores["left"]}, Sağ Oyuncu - ${data.scores["right"]}`);
                 break;
 
             case 'game_start':
-                console.log(`Game starting in ${data.countdown} seconds`);
+                if (data.countdown > 0) {
+                    console.log(`game starting in ${data.countdown} seconds...`);
+
+                } else {
+                    console.log('game started!');
+                    gameActive = true;
+                }
                 break;
 
             case 'opponent_joined':
                 //addWallText(data.opponent_username, playerSide === 'left' ? 15 : -15);
                 console.log(`Opponent joined: ${data.opponent_username}`);
                 break;
+
+            case 'game_over':
+                gameActive = false;
+                alert(`Game Over! Winner: ${data.winner_username}\nScore: Left - ${data.scores.left}, Right - ${data.scores.right}`);
+                router.navigate('/profile');
+                break;
         }
     };
 
     gameSocket.onclose = () => {
-        console.log('WebSocket connection closed.');
+        console.log('gamesocket connection closed.');
     };
 
-    gameSocket.onerror = function(error) {2 
-        alert("Connection failed! This username is already in use");
+    gameSocket.onerror = function(error) {
+        console.log('game socket error', error);
     };
 
     function sendPaddleUpdate(position) {
@@ -315,7 +338,7 @@ export async function init(params) {
     document.addEventListener("keyup", (event) => { keys[event.key] = false; });
 
     function key_control() {
-        if (!playerSide || gameSocket.readyState !== WebSocket.OPEN) return;
+        if (!playerSide || !gameActive || gameSocket.readyState !== WebSocket.OPEN) return;
 
         if (playerSide === 'left') {
             if (((keys["s"] || keys["S"]) && leftPaddle.position.z + paddleDepth / 2 < 10)) {
@@ -345,5 +368,17 @@ export async function init(params) {
     };
 
     animate();
+
+    window.currentCleanup = () => {
+        const orientationWarning = document.getElementById('orientation-warning');
+        if (orientationWarning) {
+            document.body.removeChild(orientationWarning);
+        }
+
+        if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
+            gameSocket.close();
+            console.log('game socket connection closed');
+        }
+    };
 }
 

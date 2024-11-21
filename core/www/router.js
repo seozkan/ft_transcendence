@@ -1,6 +1,6 @@
 "use strict";
 
-import { showToastMessage, getUserName, getCookie } from './code.js';
+import { showToastMessage, getUserName, getCookie, ConnectNotificationSocket } from './code.js';
 
 class Router {
   constructor() {
@@ -14,7 +14,14 @@ class Router {
   }
 
   async navigate(location, replace = false) {
+    if (window.currentCleanup) {
+      window.currentCleanup();
+      window.currentCleanup = null;
+    }
+
     const accessToken = getCookie('access_token');
+
+    await ConnectNotificationSocket();
 
     const url = new URL(location, window.location.origin);
     let path = url.pathname;
