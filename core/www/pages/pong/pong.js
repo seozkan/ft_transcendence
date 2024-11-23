@@ -339,23 +339,23 @@ export async function init(params) {
 
     function key_control() {
         if (!playerSide || !gameActive || gameSocket.readyState !== WebSocket.OPEN) return;
-
+        
         if (playerSide === 'left') {
             if (((keys["s"] || keys["S"]) && leftPaddle.position.z + paddleDepth / 2 < 10)) {
-                leftPaddle.position.z += 0.1;
+                leftPaddle.position.z += 0.2;
                 sendPaddleUpdate(leftPaddle.position);
             }
             if (((keys["w"] || keys["W"]) && leftPaddle.position.z - paddleDepth / 2 > -10)) {
-                leftPaddle.position.z -= 0.1;
+                leftPaddle.position.z -= 0.2;
                 sendPaddleUpdate(leftPaddle.position);
             }
         } else if (playerSide === 'right') {
             if (((keys["s"] || keys["S"]) && rightPaddle.position.z + paddleDepth / 2 < 10)) {
-                rightPaddle.position.z += 0.1;
+                rightPaddle.position.z += 0.2;
                 sendPaddleUpdate(rightPaddle.position);
             }
             if (((keys["w"] || keys["W"]) && rightPaddle.position.z - paddleDepth / 2 > -10)) {
-                rightPaddle.position.z -= 0.1;
+                rightPaddle.position.z -= 0.2;
                 sendPaddleUpdate(rightPaddle.position);
             }
         }

@@ -3,6 +3,7 @@ import { getCookie , getUserName, notificationSocket} from '../../code.js';
 
 export async function init() {
     let chatSocket = null;
+    let currentRoomId = null;
     const username = await getUserName();
     const messages = document.getElementById('messages');
     messages.scrollTop = messages.scrollHeight;
@@ -69,7 +70,6 @@ export async function init() {
                 `;
                 friendItem.querySelector('li').addEventListener('click', async () => {
                     const roomId = await getOrCreateRoom(friend.username);
-                    await connectToChat(roomId);
                     await getMessages(roomId);
                     setupSendMessage(roomId, friend.username);
                 });
@@ -104,7 +104,8 @@ export async function init() {
             const message = messageInputDom.value.trim();
             if (chatSocket && message !== '') {
                 chatSocket.send(JSON.stringify({
-                    'message': message
+                    'message': message,
+                    'room_id': roomId
                 }));
                 await saveMessage(roomId, message);
             }
@@ -188,22 +189,21 @@ export async function init() {
         }
     }
 
-    async function connectToChat(roomId) {
-        if (chatSocket) {
-            chatSocket.close();
-            chatSocket = null;
+    async function connectToChat() {
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            console.log('Chat socket already connected');
+            return;
         }
 
         chatSocket = new WebSocket(
-            'wss://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomId
-            + '/'
+            'wss://' + window.location.host + '/ws/chat/'
         );
 
         chatSocket.onmessage = async (e) => {
             const data = JSON.parse(e.data);
+            
+            if (data.room_id !== currentRoomId) return;
+
             const messagesList = document.querySelector('#messages ul');
             const newMessage = document.createElement('li');
             newMessage.className = 'd-flex justify-content-between mb-4';
@@ -255,6 +255,7 @@ export async function init() {
                 return;
             }
 
+            currentRoomId = data.room_id;
             return data.room_id;
         } catch (error) {
             console.error('Error:', error);
@@ -291,7 +292,9 @@ export async function init() {
             chatSocket.close();
             chatSocket = null;
         }
+        currentRoomId = null;
     };
 
     await getFriends();
+    await connectToChat();
 }

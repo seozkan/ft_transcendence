@@ -3,6 +3,7 @@ import Router from '../../router.js';
 
 export let router = null;
 export let notificationSocket = null;
+export let chatSocket = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     router = new Router();
@@ -173,7 +174,8 @@ document.getElementById('logout').addEventListener('click', async () => {
         document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         showToastMessage('Çıkış Yapıldı!')
-        await ConnectNotificationSocket();
+        if (notificationSocket)
+            notificationSocket.close();
     } catch (error) {
         console.error('error:', error);
     }
@@ -267,10 +269,6 @@ async function initializeNotificationSocket() {
         return notificationSocket;
     }
 
-    if (notificationSocket) {
-        notificationSocket.close();
-    }
-
     notificationSocket = new WebSocket(
         'wss://' + window.location.host + '/ws/notifications/'
     );
@@ -309,11 +307,8 @@ export async function ConnectNotificationSocket() {
     const accessToken = getCookie('access_token');
     
     if (accessToken) {
-        if (!notificationSocket || notificationSocket.readyState !== WebSocket.OPEN) {
+        if (!notificationSocket) {
             notificationSocket = await initializeNotificationSocket();
         }
-    } else if (notificationSocket) {
-        notificationSocket.close();
-        notificationSocket = null;
     }
 }
