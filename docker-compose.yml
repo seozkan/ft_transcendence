@@ -50,11 +50,14 @@ services:
     image: redis:7.4.1
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
       - webnet
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   webnet:

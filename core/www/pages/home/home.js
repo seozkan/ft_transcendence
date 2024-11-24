@@ -13,7 +13,7 @@ export async function init() {
 
         const data = await response.json();
         const intraAuthButton = document.querySelector('a[data-no-router]');
-        console.log(data.intra_auth_url);
+
         if (intraAuthButton) {
             intraAuthButton.href = data.intra_auth_url;
         }

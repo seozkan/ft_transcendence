@@ -21,13 +21,15 @@ class Router {
 
     const accessToken = getCookie('access_token');
 
-    await ConnectNotificationSocket();
-
     const url = new URL(location, window.location.origin);
     let path = url.pathname;
     this.params = url.searchParams;
 
     const publicPaths = ['/', '/tfa', '/login', '/register'];
+
+    if (accessToken) {
+      await ConnectNotificationSocket();
+    }
 
     if (!publicPaths.includes(path)) {
       const header = document.querySelector('header');

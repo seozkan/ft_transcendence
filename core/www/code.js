@@ -304,11 +304,7 @@ async function initializeNotificationSocket() {
 }
 
 export async function ConnectNotificationSocket() {
-    const accessToken = getCookie('access_token');
-    
-    if (accessToken) {
-        if (!notificationSocket) {
-            notificationSocket = await initializeNotificationSocket();
-        }
+    if (!notificationSocket) {
+        notificationSocket = await initializeNotificationSocket();
     }
 }
