@@ -84,7 +84,7 @@ export async function init(params) {
     async function user_register() {
         const csrfToken = getCookie('csrftoken');
 
-        const response = await fetch('https://localhost/accounts/user_register', {
+        const response = await fetch('/accounts/user_register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

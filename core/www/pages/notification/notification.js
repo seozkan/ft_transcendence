@@ -8,7 +8,7 @@ export async function init(params) {
         const csrfToken = getCookie('csrftoken');
 
         try {
-            const response = await fetch('https://localhost/api/accept_friend_request', {
+            const response = await fetch('/api/accept_friend_request', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -41,7 +41,7 @@ export async function init(params) {
         const csrfToken = getCookie('csrftoken');
 
         try {
-            const response = await fetch('https://localhost/api/reject_friend_request', {
+            const response = await fetch('/api/reject_friend_request', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -76,7 +76,7 @@ export async function init(params) {
             const notificationBody = document.getElementById('notificationBody');
             const notificationSpan = document.querySelector('#notification span');
 
-            const response = await fetch('https://localhost/accounts/check_notifications', {
+            const response = await fetch('/accounts/check_notifications', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,

@@ -35,6 +35,7 @@ class AuthViewset(viewsets.ViewSet):
         return refresh_token
     
     def get_intra_access_token(self, request):
+
         try:
             code = request.query_params['code']
             intra_auth_url = "https://api.intra.42.fr/oauth/token"
@@ -43,7 +44,7 @@ class AuthViewset(viewsets.ViewSet):
                     "client_id": settings.INTRA_UID,
                     "client_secret": settings.INTRA_SECRET,
                     "code": code,
-                    "redirect_uri": "https://localhost/accounts/intra"
+                    "redirect_uri": f"https://{settings.SERVER_NAME}/accounts/intra"
                 }
             response = requests.post(intra_auth_url, data=data)
             if response.status_code != 200:
@@ -72,7 +73,7 @@ class AuthViewset(viewsets.ViewSet):
         try:
             user = User.objects.get(email=email)
             if (user.isTfaActive):
-                response = redirect('https://localhost/tfa')
+                response = redirect(f'https://{settings.SERVER_NAME}/tfa')
                 response.set_cookie('uuid', user.id)
                 return response
         except User.DoesNotExist:
@@ -87,7 +88,7 @@ class AuthViewset(viewsets.ViewSet):
         access_token = self.create_access_token(user.id)
         refresh_token = self.create_refresh_token(user.id)
         
-        response = redirect('https://localhost/profile')
+        response = redirect(f'https://{settings.SERVER_NAME}/profile')
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
         return response
@@ -198,6 +199,9 @@ class AuthViewset(viewsets.ViewSet):
                 return Response("error", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response("No user is logged in", status=status.HTTP_400_BAD_REQUEST)
+
+    def get_intra_auth_url(self, request):
+        return Response({'intra_auth_url': settings.INTRA_AUTH_URL}, status=status.HTTP_200_OK)
 
 
 class NotificationViewSet(viewsets.ViewSet):

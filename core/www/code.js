@@ -47,7 +47,7 @@ export async function getUserInfo(username) {
     const accessToken = getCookie('access_token');
 
     try {
-        const response = await fetch(`https://localhost/api/users/${username}`, {
+        const response = await fetch(`/api/users/${username}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -72,7 +72,7 @@ export async function getUserName() {
     const accessToken = getCookie('access_token');
 
     try {
-        const response = await fetch(`https://localhost/api/get_username`, {
+        const response = await fetch(`/api/get_username`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -159,7 +159,7 @@ document.getElementById('logout').addEventListener('click', async () => {
     try {
         const header = document.querySelector('header');
 
-        const response = await fetch('https://localhost/accounts/logout', {
+        const response = await fetch('/accounts/logout', {
             method: 'GET',
         });
 
@@ -192,7 +192,7 @@ async function fetchQRCode() {
     const accessToken = getCookie('access_token');
 
     try {
-        const response = await fetch('https://localhost/api/generate_tfa', {
+        const response = await fetch('/api/generate_tfa', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -235,7 +235,7 @@ async function updateNotifications() {
 
     const notificationSpan = document.querySelector('#notification span');
     try {
-        const response = await fetch('https://localhost/accounts/check_notifications', {
+        const response = await fetch('/accounts/check_notifications', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,

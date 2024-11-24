@@ -35,6 +35,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'www')
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 INTRA_UID = os.environ.get('INTRA_UID')
 INTRA_SECRET = os.environ.get('INTRA_SECRET')
+INTRA_AUTH_URL = os.environ.get('INTRA_AUTH_URL')
+SERVER_NAME = os.environ.get('SERVER_NAME')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -46,6 +48,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,7 +56,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'rest_framework',
     'api',
     'accounts',
@@ -150,9 +152,13 @@ STATIC_ROOT = BASE_DIR / 'www' / 'static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_HEADERS = True
+
 CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1:8000",
-    "https://127.0.0.1",
-    "http://localhost:8000",
-    "https://localhost",
+    'https://192.168.1.106',
+    'http://192.168.1.106',
+    'http://localhost',
+    'https://localhost'
 ]

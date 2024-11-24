@@ -83,7 +83,7 @@ export async function init(params) {
     const csrfToken = getCookie('csrftoken');
 
     try {
-      const response = await fetch('https://localhost/api/send_friend_request', {
+      const response = await fetch('/api/send_friend_request', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -118,7 +118,7 @@ export async function init(params) {
     const csrfToken = getCookie('csrftoken');
 
     try {
-      const response = await fetch('https://localhost/api/is_friend', {
+      const response = await fetch('/api/is_friend', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -161,7 +161,7 @@ export async function init(params) {
     const csrfToken = getCookie('csrftoken');
 
     try {
-      const response = await fetch('https://localhost/api/remove_friend', {
+      const response = await fetch('/api/remove_friend', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -206,7 +206,7 @@ export async function init(params) {
     }
 
     try {
-      const response = await fetch('https://localhost/api/verify_tfa', {
+      const response = await fetch('/api/verify_tfa', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -246,7 +246,7 @@ export async function init(params) {
     const csrfToken = getCookie('csrftoken');
 
     try {
-      const response = await fetch('https://localhost/api/block_user', {
+      const response = await fetch('/api/block_user', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -283,7 +283,7 @@ export async function init(params) {
     const csrfToken = getCookie('csrftoken');
 
     try {
-      const response = await fetch('https://localhost/api/unblock_user', {
+      const response = await fetch('/api/unblock_user', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -322,15 +322,13 @@ export async function init(params) {
 
   async function getBlockedUsers() {
     const accessToken = getCookie('access_token');
-    const csrfToken = getCookie('csrftoken');
 
     try {
-      const response = await fetch('https://localhost/api/get_blocked_users', {
+      const response = await fetch('/api/get_blocked_users', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
+          'Content-Type': 'application/json'
         }
       });
 

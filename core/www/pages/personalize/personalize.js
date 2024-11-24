@@ -20,7 +20,7 @@ export async function init(params) {
       const csrfToken = getCookie('csrftoken');
 
       try {
-        const response = await fetch('https://localhost/api/update_ui', {
+        const response = await fetch('/api/update_ui', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,

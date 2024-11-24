@@ -14,7 +14,7 @@ export async function init(params) {
         }
 
         try {
-            const response = await fetch("https://localhost/api/get_all_player", {
+            const response = await fetch("/api/get_all_player", {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,

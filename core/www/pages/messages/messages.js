@@ -22,7 +22,7 @@ export async function init() {
         const accessToken = getCookie('access_token');
 
         try {
-            const response = await fetch('https://localhost/api/get_friends', {
+            const response = await fetch('/api/get_friends', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -129,7 +129,7 @@ export async function init() {
 
     async function getMessages(roomId) {
         try {
-            const response = await fetch('https://localhost/chat/get_messages', {
+            const response = await fetch('/chat/get_messages', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -237,7 +237,7 @@ export async function init() {
         const csrfToken = getCookie('csrftoken');
 
         try {
-            const response = await fetch('https://localhost/chat/get_room', {
+            const response = await fetch('/chat/get_room', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ export async function init() {
 
     async function saveMessage(roomId, message) {
         try {
-            const response = await fetch('https://localhost/chat/save_message', {
+            const response = await fetch('/chat/save_message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

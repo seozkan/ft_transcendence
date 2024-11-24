@@ -12,7 +12,7 @@ export async function init(params) {
     async function tfa_login(tfaCode) {
         const csrfToken = getCookie('csrftoken');
         try {
-            const response = await fetch('https://localhost/accounts/tfa_login', {
+            const response = await fetch('/accounts/tfa_login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

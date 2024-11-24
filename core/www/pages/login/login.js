@@ -46,7 +46,7 @@ export async function init(params) {
         const csrfToken = getCookie('csrftoken');
 
         try {
-            const response = await fetch('https://localhost/accounts/user_login', {
+            const response = await fetch('/accounts/user_login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
