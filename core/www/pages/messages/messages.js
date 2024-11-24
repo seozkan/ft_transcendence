@@ -1,5 +1,5 @@
 "use strict";
-import { getCookie , getUserName, notificationSocket} from '../../code.js';
+import { router, getCookie , getUserName, notificationSocket} from '../../code.js';
 
 export async function init() {
     let chatSocket = null;
@@ -161,7 +161,7 @@ export async function init() {
                     <div class="card mask-custom w-100">
                         <div class="card-header d-flex justify-content-between p-3"
                             style="border-bottom: 1px solid rgba(255,255,255,.3);">
-                            <p class="fw-bold mb-0">${message.user}</p>
+                            <p class="sender fw-bold mb-0" style="cursor:pointer">${message.user}</p>
                             <p class="text-light small mb-0"><i class="far fa-clock"></i> ${formatDate(message.created_date)}</p>
                         </div>
                         <div class="card-body">
@@ -173,6 +173,13 @@ export async function init() {
                 `;
                 messagesList.appendChild(messageItem);
             });
+
+            messagesList.addEventListener('click', async (event) => {
+                if (event.target.classList.contains('sender')) {
+                    await router.navigate(`/profile?username=${event.target.textContent}`);
+                }
+            });
+
             messagesList.innerHTML += `
                 <li id="sendGroup" class="ms-5">
                   <div data-mdb-input-init class="form-outline form-white">
@@ -210,22 +217,29 @@ export async function init() {
 
             newMessage.innerHTML = `
                 <img src="${data.avatar}" alt="avatar"
-                    class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" style="height: 3rem; width: 3rem; object-fit: cover;">
+                class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" style="height: 3rem; width: 3rem; object-fit: cover;">
                 <div class="card mask-custom w-100">
-                    <div class="card-header d-flex justify-content-between p-3"
-                        style="border-bottom: 1px solid rgba(255,255,255,.3);">
-                        <p class="fw-bold mb-0">${data.user}</p>
-                        <p class="text-light small mb-0"><i class="far fa-clock"></i> ${formatDate(new Date())}</p>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-0">
-                            ${data.message}
-                        </p>
-                    </div>
+                <div class="card-header d-flex justify-content-between p-3"
+                style="border-bottom: 1px solid rgba(255,255,255,.3);">
+                <p class="sender fw-bold mb-0" style="cursor:pointer"">${data.user}</p>
+                <p class="text-light small mb-0"><i class="far fa-clock"></i> ${formatDate(new Date())}</p>
                 </div>
-            `;
-            messagesList.insertBefore(newMessage, messagesList.querySelector('#sendGroup'));
-            messages.scrollTop = messages.scrollHeight;
+                <div class="card-body">
+                <p class="mb-0">
+                ${data.message}
+                </p>
+                </div>
+                </div>
+                `;
+        
+                messagesList.insertBefore(newMessage, messagesList.querySelector('#sendGroup'));
+                messages.scrollTop = messages.scrollHeight;
+                
+                messagesList.addEventListener('click', async (event) => {
+                if (event.target.classList.contains('sender')) {
+                    await router.navigate(`/profile?username=${event.target.textContent}`);
+                }
+            });
         };
 
         chatSocket.onclose = function (e) {
