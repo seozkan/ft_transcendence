@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     router.addRoute('/pong', 'pong');
     router.addRoute('/leaderboard', 'leaderboard');
     router.addRoute('/notification', 'notification');
+    router.addRoute('/game', 'game');
 
     await router.navigate(window.location, true);
 
@@ -273,8 +274,22 @@ async function initializeNotificationSocket() {
         'wss://' + window.location.host + '/ws/notifications/'
     );
 
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000;
+
+    const reconnect = async () => {
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`notification socket reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+            await new Promise(resolve => setTimeout(resolve, reconnectDelay));
+            initializeNotificationSocket();
+        }
+    };
+
     notificationSocket.onopen = function() {
         console.log('notification socket connection successful');
+        reconnectAttempts = 0;
     };
 
     notificationSocket.onmessage = async function (e) {
@@ -284,20 +299,22 @@ async function initializeNotificationSocket() {
             if(notification.type === 'invite') {
                 await showInviteMessage(notification.title, notification.message, notification);
             }
-            if (notification.type === 'invite_accepted') {
+            else if (notification.type === 'invite_accepted') {
                 await router.navigate(`/pong?room=${notification.data.roomId}`);
                 showToastMessage('Davet Kabul Edildi!');
+            }
+            else if (notification.type === 'message') {
+                showToastMessage(notification.message);
             }
             return;
         }
     };
 
-    notificationSocket.onerror = function (e) {
-        console.error('notifiy socket error:', e);
-    };
-
-    notificationSocket.onclose = function (e) {
-        console.log('notification socket connection closed');
+    notificationSocket.onerror = function(error) {
+        console.error('notification socket error:', error);
+        if (notificationSocket.readyState !== WebSocket.OPEN) {
+            reconnect();
+        }
     };
 
     return notificationSocket;

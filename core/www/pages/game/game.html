@@ -1,0 +1,121 @@
+<main class="d-flex flex-fill min-vh-100 align-items-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <!-- Tournament Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 position-relative" role="button" data-bs-toggle="modal"
+                    data-bs-target="#tournamentModal">
+                    <div class="card-body text-center">
+                        <div class="bg-image position-absolute w-100 h-100"
+                            style="opacity: 0.1; top: 0; left: 0; background: url('https://static.vecteezy.com/system/resources/previews/007/935/401/non_2x/ping-pong-sport-pattern-background-illustration-vector.jpg') no-repeat center; background-size: cover; z-index: 0;">
+                        </div>
+                        <h3 class="card-title position-relative">Turnuva Modu</h3>
+                        <p class="card-text position-relative">Turnuvalara katıl ve şampiyon ol!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Random Match Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 position-relative" role="button" data-bs-toggle="modal"
+                    data-bs-target="#randomMatchModal">
+                    <div class="card-body text-center">
+                        <div class="bg-image position-absolute w-100 h-100"
+                            style="opacity: 0.1; top: 0; left: 0; background: url('https://static.vecteezy.com/system/resources/previews/007/935/401/non_2x/ping-pong-sport-pattern-background-illustration-vector.jpg') no-repeat center; background-size: cover; z-index: 0;">
+                        </div>
+                        <h3 class="card-title position-relative">Rastgele Eşleştir</h3>
+                        <p class="card-text position-relative">Hemen rastgele bir rakiple eşleş!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friend Match Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 position-relative" role="button" data-bs-toggle="modal" data-bs-target="#friendMatchModal">
+                    <div class="card-body text-center">
+                        <div class="bg-image position-absolute w-100 h-100"
+                            style="opacity: 0.1; top: 0; left: 0; background: url('https://static.vecteezy.com/system/resources/previews/007/935/401/non_2x/ping-pong-sport-pattern-background-illustration-vector.jpg') no-repeat center; background-size: cover; z-index: 0;">
+                        </div>
+                        <h3 class="card-title position-relative">Arkadaşınla Oyna</h3>
+                        <p class="card-text position-relative">Arkadaşını davet et ve oynamaya başla!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tournament Modal -->
+    <div class="modal fade" id="tournamentModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="tournamentModalLabel">Turnuva Modu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                        <div class="tournament-player">
+                            <img src="https://play-lh.googleusercontent.com/Qen7AErcMTWKrlhPpQrMS6teGFffDDc3NHMlf7LbecC_Tlxp6OdaEUMLPJDnd1bT9w=w526-h296-rw"
+                                class="rounded-circle mb-3" width="80" height="80" alt="Profil Fotoğrafı">
+                            <h5 class="mb-3 text-danger">seozkan</h5>
+                        </div>
+                        <div class="tournament-player">
+                            <img src="https://play-lh.googleusercontent.com/7oW_TFaC5yllHJK8nhxHLQRCvGDE8jYIAc2SWljYpR6hQlFTkbA6lNvER1ZK-doQnQ"
+                                class="rounded-circle mb-3" width="80" height="80" alt="Profil Fotoğrafı">
+                            <h5 class="mb-3 text-danger">madagasgar</h5>
+                        </div>
+                        <div class="tournament-player">
+                            <img src="https://play-lh.googleusercontent.com/Qen7AErcMTWKrlhPpQrMS6teGFffDDc3NHMlf7LbecC_Tlxp6OdaEUMLPJDnd1bT9w=w526-h296-rw"
+                                class="rounded-circle mb-3" width="80" height="80" alt="Profil Fotoğrafı">
+                            <h5 class="mb-3 text-danger">osimhen</h5>
+                        </div>
+                        <div class="tournament-player">
+                            <img src="https://play-lh.googleusercontent.com/7oW_TFaC5yllHJK8nhxHLQRCvGDE8jYIAc2SWljYpR6hQlFTkbA6lNvER1ZK-doQnQ"
+                                class="rounded-circle mb-3" width="80" height="80" alt="Profil Fotoğrafı">
+                            <h5 class="mb-3 text-danger">henry</h5>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <div class="spinner-border spinner-border-sm text-danger" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                        <span class="text-danger">Rakipler Bekleniyor...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Random Match Modal -->
+    <div class="modal fade" id="randomMatchModal" tabindex="-1" aria-labelledby="randomMatchModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="randomMatchModalLabel">Rastgele Eşleştir</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                        <div class="match-player">
+                            <img src="https://play-lh.googleusercontent.com/Qen7AErcMTWKrlhPpQrMS6teGFffDDc3NHMlf7LbecC_Tlxp6OdaEUMLPJDnd1bT9w=w526-h296-rw"
+                                class="rounded-circle mb-3" width="80" height="80" alt="Profil Fotoğrafı">
+                            <h5 class="mb-3 text-danger">seozkan</h5>
+                        </div>
+                        <div class="match-player">
+                            <img src="https://play-lh.googleusercontent.com/7oW_TFaC5yllHJK8nhxHLQRCvGDE8jYIAc2SWljYpR6hQlFTkbA6lNvER1ZK-doQnQ"
+                                class="rounded-circle mb-3" width="80" height="80" alt="Profil Fotoğrafı">
+                            <h5 class="mb-3 text-danger">madagasgar</h5>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <div class="spinner-border spinner-border-sm text-danger" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                        <span class="text-danger">Rakip Bekleniyor...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

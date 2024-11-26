@@ -157,8 +157,6 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_HEADERS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://192.168.1.106',
-    'http://192.168.1.106',
-    'http://localhost',
+    f'https://{SERVER_NAME}',
     'https://localhost'
 ]
