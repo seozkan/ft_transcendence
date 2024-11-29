@@ -2,7 +2,7 @@ import { getUserName, router } from '../../code.js';
 
 export async function init(params) {
     const username = await getUserName();
-    const roomId = params.get('room');
+    let roomId = params.get('room');
     if (!roomId) {
         alert("Oda numarası bulunamadı!");
         router.navigate('/profile');
@@ -12,12 +12,97 @@ export async function init(params) {
     let playerSide = null;
     let gameSocket = null;
 
-    gameSocket = new WebSocket(
-        'wss://'
-        + window.location.host
-        + '/ws/game/'
-        + roomId
-    );
+    async function connectToGameSocket() {
+        if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
+            console.log('Game socket already connected');
+            return;
+        }
+
+        if (!gameSocket) {
+            gameSocket = new WebSocket(
+                'wss://' + window.location.host + '/ws/game/' + roomId
+            );
+        }
+
+        gameSocket.onopen = () => {
+            console.log('gamesocket connection established.');
+            gameSocket.send(JSON.stringify({
+                type: 'initialize',
+                username: username
+            }));
+        };
+
+        gameSocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log(data);
+
+            switch (data.type) {
+                case 'player_assignment':
+                    playerSide = data.side;
+                    // addWallText(data.username, playerSide === 'left' ? -15 : 15);
+                    console.log(`You are playing on the ${playerSide} side as ${data.username}`);
+                    break;
+
+                case 'player_disconnected':
+                    gameActive = false;
+                    console.log(`Game ended! Final Score: Left - ${data.scores.left}, Right - ${data.scores.right}`);
+                    alert(`Opponent has left the game! Game is ending... Winner: ${data.winner_username}`);
+                    router.navigate('/profile');
+                    break;
+
+                case 'ball_update':
+                    ball.position.x = data.position.x;
+                    ball.position.z = data.position.z;
+                    break;
+
+                case 'paddle_update':
+                    if (data.username !== username) {
+                        if (playerSide === 'left') {
+                            rightPaddle.position.z = data.position.z;
+                        } else {
+                            leftPaddle.position.z = data.position.z;
+                        }
+                    }
+                    break;
+
+                case 'score_update':
+                    console.log(`Score Update: Left Player - ${data.scores.left}, Right Player - ${data.scores.right}`);
+                    break;
+
+                case 'game_start':
+                    if (data.countdown > 0) {
+                        console.log(`game starting in ${data.countdown} seconds...`);
+
+                    } else {
+                        console.log('game started!');
+                        gameActive = true;
+                    }
+                    break;
+
+                case 'opponent_joined':
+                    //addWallText(data.opponent_username, playerSide === 'left' ? 15 : -15);
+                    console.log(`Opponent joined: ${data.opponent_username}`);
+                    break;
+
+                case 'game_over':
+                    gameActive = false;
+                    alert(`Game Over! Winner: ${data.winner_username}\nScore: Left - ${data.scores.left}, Right - ${data.scores.right}`);
+                    router.navigate('/profile');
+                    break;
+            }
+        };
+
+        gameSocket.onclose = () => {
+            console.log('gamesocket connection closed.');
+            if (gameActive) {
+                alert('Oyun bağlantısı kesildi!');
+            }
+        };
+
+        gameSocket.onerror = function (error) {
+            console.log('game socket error', error);
+        };
+    }
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -26,32 +111,6 @@ export async function init(params) {
     const loaderFont = new THREE.FontLoader();
 
     renderer.setSize(window.innerWidth * 0.8, window.innerHeight * 0.8);
-
-    function checkOrientation() {
-        let orientationWarning = document.getElementById('orientation-warning');
-        if (window.innerWidth < window.innerHeight) {
-            if (!orientationWarning) {
-                orientationWarning = document.createElement('div');
-                orientationWarning.id = 'orientation-warning';
-                orientationWarning.className = 'position-fixed top-50 start-50 translate-middle bg-dark text-white text-center p-3 rounded border border-danger w-75';
-                orientationWarning.style.zIndex = '1000';
-                orientationWarning.textContent = 'Oyuna başlamak için lütfen cihazınızı yatay konuma getirin.';
-                document.body.appendChild(orientationWarning);
-            }
-            renderer.domElement.style.display = 'none';
-        } else {
-            if (orientationWarning) {
-                document.body.removeChild(orientationWarning);
-            }
-            renderer.domElement.style.display = 'block';
-        }
-    }
-
-    checkOrientation();
-
-    window.addEventListener("resize", () => {
-        checkOrientation();
-    });
 
     document.querySelector('.game-container').appendChild(renderer.domElement);
 
@@ -94,7 +153,7 @@ export async function init(params) {
     renderer.domElement.addEventListener('mousedown', (event) => {
         isMouseDown = true;
         previousMousePosition = { x: event.clientX, y: event.clientY };
-        
+
         if (event.button === 0) {
             isDragging = true;
         }
@@ -124,10 +183,10 @@ export async function init(params) {
         else if (isRotating) {
             camera.position.x = camera.position.x * Math.cos(deltaX * rotateSpeed) + camera.position.z * Math.sin(deltaX * rotateSpeed);
             camera.position.z = -camera.position.x * Math.sin(deltaX * rotateSpeed) + camera.position.z * Math.cos(deltaX * rotateSpeed);
-            
+
             const radius = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z);
             camera.position.y -= deltaY * moveSpeed;
-            
+
             camera.position.y = Math.max(Math.min(camera.position.y, 50), -50);
         }
 
@@ -144,9 +203,9 @@ export async function init(params) {
     renderer.domElement.addEventListener('wheel', (event) => {
         const zoomSpeed = 0.1;
         camera.position.z += event.deltaY * zoomSpeed;
-        
+
         camera.position.z = Math.max(Math.min(camera.position.z, 100), 10);
-        
+
         camera.lookAt(scene.position);
         event.preventDefault();
     });
@@ -247,80 +306,7 @@ export async function init(params) {
     scene.add(table);
 
 
-    gameSocket.onopen = () => {
-        console.log('gamesocket connection established.');
-        gameSocket.send(JSON.stringify({
-            type: 'initialize',
-            username: username
-        }));
-    };
-
     let gameActive = false;
-
-    gameSocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-
-        switch(data.type) {
-            case 'player_assignment':
-                playerSide = data.side;
-                // addWallText(data.username, playerSide === 'left' ? -15 : 15);
-                console.log(`You are playing on the ${playerSide} side as ${data.username}`);
-                break;
-
-            case 'player_disconnected':
-                alert("Opponent has left the game! Game is ending...");
-                router.navigate('/profile');
-                break;
-
-            case 'ball_update':
-                ball.position.x = data.position.x;
-                ball.position.z = data.position.z;
-                break;
-
-            case 'paddle_update':
-                if (data.username !== username) {
-                    if (playerSide === 'left') {
-                        rightPaddle.position.z = data.position.z;
-                    } else {
-                        leftPaddle.position.z = data.position.z;
-                    }
-                }
-                break;
-
-            case 'score_update':
-                console.log(`Score: Sol Oyuncu - ${data.scores["left"]}, Sağ Oyuncu - ${data.scores["right"]}`);
-                break;
-
-            case 'game_start':
-                if (data.countdown > 0) {
-                    console.log(`game starting in ${data.countdown} seconds...`);
-
-                } else {
-                    console.log('game started!');
-                    gameActive = true;
-                }
-                break;
-
-            case 'opponent_joined':
-                //addWallText(data.opponent_username, playerSide === 'left' ? 15 : -15);
-                console.log(`Opponent joined: ${data.opponent_username}`);
-                break;
-
-            case 'game_over':
-                gameActive = false;
-                alert(`Game Over! Winner: ${data.winner_username}\nScore: Left - ${data.scores.left}, Right - ${data.scores.right}`);
-                router.navigate('/profile');
-                break;
-        }
-    };
-
-    gameSocket.onclose = () => {
-        console.log('gamesocket connection closed.');
-    };
-
-    gameSocket.onerror = function(error) {
-        console.log('game socket error', error);
-    };
 
     function sendPaddleUpdate(position) {
         if (gameSocket.readyState === WebSocket.OPEN) {
@@ -338,8 +324,8 @@ export async function init(params) {
     document.addEventListener("keyup", (event) => { keys[event.key] = false; });
 
     function key_control() {
-        if (!playerSide || !gameActive || gameSocket.readyState !== WebSocket.OPEN) return;
-        
+        if (!playerSide || !gameActive || !gameSocket || gameSocket.readyState !== WebSocket.OPEN) return;
+
         if (playerSide === 'left') {
             if (((keys["s"] || keys["S"]) && leftPaddle.position.z + paddleDepth / 2 < 10)) {
                 leftPaddle.position.z += 0.2;
@@ -376,9 +362,14 @@ export async function init(params) {
         }
 
         if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
+            gameActive = false;
             gameSocket.close();
+            gameSocket = null;
             console.log('game socket connection closed');
         }
+        roomId = null;
     };
+
+    connectToGameSocket();
 }
 

@@ -302,7 +302,7 @@ export async function init() {
     }
 
     window.currentCleanup = () => {
-        if (chatSocket) {
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
             chatSocket.close();
             chatSocket = null;
         }

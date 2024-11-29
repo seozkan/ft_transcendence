@@ -1,11 +1,12 @@
 "use strict";
-import Router from '../../router.js';
 
+import Router from './router.js';
+
+// Router instance'ını export edelim
 export let router = null;
-export let notificationSocket = null;
-export let chatSocket = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Router'ı başlat ve rotaları ekle
+const initializeRouter = async () => {
     router = new Router();
 
     router.addRoute('/', 'home');
@@ -22,21 +23,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     router.addRoute('/game', 'game');
 
     await router.navigate(window.location, true);
+};
 
-    window.addEventListener('popstate', async () => {
-        const location = window.location;
-        await router.navigate(location, true);
-    });
-
-    document.body.addEventListener('click', async (event) => {
-        if (event.target.tagName === 'A' && !event.target.hasAttribute('data-no-router')) {
-            event.preventDefault();
-            const location = event.target.href;
-            await router.navigate(location);
-        }
-    });
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeRouter();
 });
 
+export let notificationSocket = null;
+export let chatSocket = null;
 
 export function getCookie(name) {
     const value = `; ${document.cookie}`;
