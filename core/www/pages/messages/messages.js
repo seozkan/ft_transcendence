@@ -102,15 +102,18 @@ export async function init() {
         sendButton.onclick = async () => {
             const messageInputDom = document.querySelector('#sendGroup textarea');
             const message = messageInputDom.value.trim();
-            if (chatSocket && message !== '') {
+            
+            if (message !== '') {
+                // Mesajı gönder
                 chatSocket.send(JSON.stringify({
                     'message': message,
                     'room_id': roomId
                 }));
                 await saveMessage(roomId, message);
+                
+                messageInputDom.value = '';
+                sendButton.disabled = true;
             }
-            messageInputDom.value = '';
-            sendButton.disabled = true;
         };
 
         inviteButton.onclick = async () => {
@@ -206,6 +209,10 @@ export async function init() {
             'wss://' + window.location.host + '/ws/chat/'
         );
 
+        chatSocket.onopen = function() {
+            console.log('chat socket connection established successfully');
+        };
+
         chatSocket.onmessage = async (e) => {
             const data = JSON.parse(e.data);
             
@@ -270,6 +277,23 @@ export async function init() {
             }
 
             currentRoomId = data.room_id;
+            
+            if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+                await connectToChat();
+                await new Promise(resolve => {
+                    if (chatSocket.readyState === WebSocket.OPEN) {
+                        resolve();
+                    } else {
+                        chatSocket.addEventListener('open', () => resolve());
+                    }
+                });
+            }
+
+            chatSocket.send(JSON.stringify({
+                'type': 'join_room',
+                'room_id': currentRoomId
+            }));
+
             return data.room_id;
         } catch (error) {
             console.error('Error:', error);

@@ -10,9 +10,9 @@ async function getPlayerAvatar(username) {
 
 async function initializeRandomMatch() {
     const username = await getUserName();
-    const randomMatchModal = document.querySelector('#randomMatchModal .modal-body');
     const userAvatar = await getPlayerAvatar(username);
     
+    const randomMatchModal = document.querySelector('#randomMatchModal .modal-body');
     randomMatchModal.innerHTML = `
         <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
             <div class="match-player text-center">
@@ -35,7 +35,8 @@ async function initializeRandomMatch() {
         message: `${username} eşleşme arıyor`,
         data: {
             gameMode: 'random',
-            username: username
+            username: username,
+            avatar: userAvatar
         }
     }));
 }
@@ -177,6 +178,29 @@ export async function init() {
                     if (opponent) {
                         startCountdown(data.roomId, opponent.username);
                     }
+                }
+                break;
+
+            case 'random_player_joined':
+                const randomMatchModal = document.querySelector('#randomMatchModal .modal-body');
+                if (randomMatchModal) {
+                    const currentPlayers = data.current_players || [];
+                    randomMatchModal.innerHTML = `
+                        <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                            ${currentPlayers.map(player => `
+                                <div class="match-player text-center">
+                                    <img src="${player.avatar}" class="rounded-circle border border-danger mb-3" width="80" height="80" alt="${player.username}">
+                                    <h5 class="mb-3 text-danger">${player.username}</h5>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <div class="spinner-border spinner-border-sm text-danger" role="status">
+                                <span class="visually-hidden">Yükleniyor...</span>
+                            </div>
+                            <span class="text-danger">Rakip Bekleniyor...</span>
+                        </div>
+                    `;
                 }
                 break;
         }

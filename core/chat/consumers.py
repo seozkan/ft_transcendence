@@ -16,18 +16,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        message_type = data.get('type', 'message')
         room_id = data.get('room_id')
-        
-        if room_id:
-            room_group_name = f"chat_{room_id}"
-            
+
+        if not room_id:
+            return
+
+        room_group_name = f"chat_{room_id}"
+
+        if message_type == 'join_room':
             self.rooms.add(room_group_name)
-            
             await self.channel_layer.group_add(
                 room_group_name,
                 self.channel_name
             )
-            
+            return
+
+        if room_group_name in self.rooms:
             await self.channel_layer.group_send(
                 room_group_name,
                 {

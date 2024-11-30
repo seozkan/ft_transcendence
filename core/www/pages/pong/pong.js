@@ -36,10 +36,32 @@ export async function init(params) {
             const data = JSON.parse(event.data);
             console.log(data);
 
+            let finalScoreReceived = false;
+
             switch (data.type) {
                 case 'player_assignment':
                     playerSide = data.side;
-                    // addWallText(data.username, playerSide === 'left' ? -15 : 15);
+                    console.log('Player Assignment Data:', {
+                        username: data.username,
+                        opponent: data.opponent_username,
+                        side: data.side
+                    });
+                    
+                    if (playerSide === 'left') {
+                        addWallText(data.username, -15);
+                        addWallText('0', -15, true);
+                        if (data.opponent_username) {
+                            addWallText(data.opponent_username, 15);
+                            addWallText('0', 15, true);
+                        }
+                    } else {
+                        addWallText(data.username, 15);
+                        addWallText('0', 15, true);
+                        if (data.opponent_username) {
+                            addWallText(data.opponent_username, -15);
+                            addWallText('0', -15, true);
+                        }
+                    }
                     console.log(`You are playing on the ${playerSide} side as ${data.username}`);
                     break;
 
@@ -66,6 +88,8 @@ export async function init(params) {
                     break;
 
                 case 'score_update':
+                    addWallText(data.scores.left.toString(), -15, true);
+                    addWallText(data.scores.right.toString(), 15, true);
                     console.log(`Score Update: Left Player - ${data.scores.left}, Right Player - ${data.scores.right}`);
                     break;
 
@@ -79,15 +103,33 @@ export async function init(params) {
                     }
                     break;
 
-                case 'opponent_joined':
-                    //addWallText(data.opponent_username, playerSide === 'left' ? 15 : -15);
-                    console.log(`Opponent joined: ${data.opponent_username}`);
-                    break;
-
                 case 'game_over':
                     gameActive = false;
-                    alert(`Game Over! Winner: ${data.winner_username}\nScore: Left - ${data.scores.left}, Right - ${data.scores.right}`);
-                    router.navigate('/profile');
+                    finalScoreReceived = true;
+                    addWallText(data.scores.left.toString(), -15, true);
+                    addWallText(data.scores.right.toString(), 15, true);
+                    
+                    setTimeout(() => {
+                        alert(`Game Over! Winner: ${data.winner_username}\nScore: Left - ${data.scores.left}, Right - ${data.scores.right}`);
+                        router.navigate('/profile');
+                    }, 200);
+                    break;
+
+                case 'opponent_joined':
+                    console.log('Opponent Joined Data:', {
+                        opponent: data.opponent_username,
+                        playerSide: playerSide
+                    });
+                    
+                    if (data.opponent_username) {
+                        if (playerSide === 'left' && !rightPlayerText) {
+                            addWallText(data.opponent_username, 15);
+                            addWallText('0', 15, true);
+                        } else if (playerSide === 'right' && !leftPlayerText) {
+                            addWallText(data.opponent_username, -15);
+                            addWallText('0', -15, true);
+                        }
+                    }
                     break;
             }
         };
@@ -250,19 +292,43 @@ export async function init(params) {
         scene.add(wall);
     }
 
-    function addWallText(text, positionX) {
+    let leftPlayerText, rightPlayerText, leftScoreText, rightScoreText;
+
+    function addWallText(text, positionX, isScore = false) {
         loaderFont.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
             const textMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-
-            const wallTextGeometry = new THREE.TextGeometry(text, {
+            const textConfig = {
                 font: font,
-                size: 2,
+                size: isScore ? 3 : 2,
                 height: 0.1,
-            });
+            };
+
+            const wallTextGeometry = new THREE.TextGeometry(text, textConfig);
             const wallText = new THREE.Mesh(wallTextGeometry, textMaterial);
             wallTextGeometry.computeBoundingBox();
             const textWidth = wallTextGeometry.boundingBox.max.x - wallTextGeometry.boundingBox.min.x;
-            wallText.position.set(positionX - textWidth / 2, 0, -49.5);
+            
+            const yPosition = isScore ? -5 : 2;
+            wallText.position.set(positionX - textWidth / 2, yPosition, -49.5);
+            
+            if (isScore) {
+                if (positionX < 0) {
+                    if (leftScoreText) scene.remove(leftScoreText);
+                    leftScoreText = wallText;
+                } else {
+                    if (rightScoreText) scene.remove(rightScoreText);
+                    rightScoreText = wallText;
+                }
+            } else {
+                if (positionX < 0) {
+                    if (leftPlayerText) scene.remove(leftPlayerText);
+                    leftPlayerText = wallText;
+                } else {
+                    if (rightPlayerText) scene.remove(rightPlayerText);
+                    rightPlayerText = wallText;
+                }
+            }
+            
             scene.add(wallText);
         });
     }
