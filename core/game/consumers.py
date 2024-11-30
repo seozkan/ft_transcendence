@@ -333,11 +333,29 @@ class GameConsumer(AsyncWebsocketConsumer):
             
             if self.room_id in self.channel_layer.game_states:
                 game_state = self.channel_layer.game_states[self.room_id]
-                game_state["is_game_active"] = False
                 
-                other_side = "right" if self.player_side == "left" else "left"
-                game_state["scores"][self.player_side] = 0
-                game_state["scores"][other_side] = 3
+                if game_state["is_game_active"] and game_state["scores"]["left"] < 10 and game_state["scores"]["right"] < 10:
+                    game_state["is_game_active"] = False
+                    other_side = "right" if self.player_side == "left" else "left"
+                    game_state["scores"][self.player_side] = 0
+                    game_state["scores"][other_side] = 3
+                    
+                    other_username = game_state["player_usernames"][other_side]
+                    
+                    if other_username:
+                        await self.channel_layer.group_send(
+                            self.room_group_name,
+                            {
+                                "type": "game_over",
+                                "winner": other_side,
+                                "winner_username": other_username,
+                                "scores": game_state["scores"],
+                                "player_usernames": {
+                                    "left": game_state["player_usernames"]["left"],
+                                    "right": game_state["player_usernames"]["right"]
+                                }
+                            }
+                        )
                 
                 if self.channel_name in game_state["players"]:
                     game_state["players"].remove(self.channel_name)
@@ -347,21 +365,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 
                 if username in game_state["paddle_positions"]:
                     del game_state["paddle_positions"][username]
-                
-                other_username = game_state["player_usernames"][other_side]
-                
-                if other_username:
-                    await self.channel_layer.group_send(
-                        self.room_group_name,
-                        {
-                            "type": "game_over",
-                            "side": self.player_side,
-                            "winner": other_side,
-                            "winner_username": other_username,
-                            "message": "Opponent has left the game! Default win (3-0)",
-                            "scores": game_state["scores"]
-                        }
-                    )
 
                 await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
                 
@@ -394,40 +397,31 @@ class GameConsumer(AsyncWebsocketConsumer):
         }))
 
     async def game_over(self, event):
-
         if self.room_id in self.channel_layer.game_states:
             game_state = self.channel_layer.game_states[self.room_id]
             game_state["is_game_active"] = False
             
-            game_state["ball_position"] = {"x": 0, "z": 0}
-            game_state["ball_velocity"] = {"x": 0, "z": 0}
-
-        if self.game_mode == 'tournament':
-            tournament_state = self.channel_layer.tournament_states[self.room_id]
-            tournament_state['winners'].append(event['winner_username'])
+            response_data = {
+                "type": "game_over",
+                "winner": event["winner"],
+                "winner_username": event["winner_username"],
+                "scores": event["scores"],
+                "player_usernames": event["player_usernames"] if "player_usernames" in event else game_state["player_usernames"]
+            }
             
-            if len(tournament_state['winners']) == 2:
-                next_room_id = f"{self.room_id}_final"
-                
-                for winner in tournament_state['winners']:
-                    await self.channel_layer.group_send(
-                        f'notifications_{winner}',
-                        {
-                            'type': 'tournament_final',
-                            'players': tournament_state['winners'],
-                            'roomId': next_room_id
+            if self.game_mode == 'tournament':
+                tournament_state = self.channel_layer.tournament_states.get(self.room_id)
+                if tournament_state:
+                    response_data["is_final"] = tournament_state['current_round'] == 1
+                    
+                    if not response_data["is_final"] and event["winner_username"] in tournament_state['winners']:
+                        next_room_id = f"{self.room_id}_final"
+                        response_data["next_match"] = {
+                            "room_id": next_room_id,
+                            "players": tournament_state['winners']
                         }
-                    )
-                
-                tournament_state['winners'] = []
-                tournament_state['current_round'] += 1
-
-        await self.send(text_data=json.dumps({
-            "type": "game_over",
-            "winner": event["winner"],
-            "winner_username": event["winner_username"],
-            "scores": event["scores"]
-        }))
+            
+            await self.send(text_data=json.dumps(response_data))
 
     async def match_cancelled(self, event):
         await self.send(text_data=json.dumps({

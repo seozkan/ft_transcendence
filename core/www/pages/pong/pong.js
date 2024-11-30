@@ -1,6 +1,50 @@
-import { getUserName, router } from '../../code.js';
+import { getUserName, router, getUserInfo } from '../../code.js';
+
+async function getPlayerAvatar(username) {
+    const userInfo = await getUserInfo(username);
+    return userInfo.avatar_url;
+}
 
 export async function init(params) {
+    const modalHTML = `
+    <div class="modal fade" id="gameOverModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger">Oyun Bitti!</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap mb-3">
+                        <div class="player-info text-center">
+                            <!-- Sol oyuncu bilgileri buraya gelecek -->
+                        </div>
+                        <div class="text-danger h4">VS</div>
+                        <div class="player-info text-center">
+                            <!-- Sağ oyuncu bilgileri buraya gelecek -->
+                        </div>
+                    </div>
+                    <div class="winner-info mb-3">
+                        <!-- Kazanan bilgisi buraya gelecek -->
+                    </div>
+                    <div class="tournament-info d-none">
+                        <!-- Turnuva bilgileri buraya gelecek -->
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-danger" id="goToProfile">Profile Git</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    document.getElementById('goToProfile').addEventListener('click', () => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('gameOverModal'));
+        modal.hide();
+        router.navigate('/profile');
+    });
+
     const username = await getUserName();
     let roomId = params.get('room');
     if (!roomId) {
@@ -14,7 +58,7 @@ export async function init(params) {
 
     async function connectToGameSocket() {
         if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
-            console.log('Game socket already connected');
+            console.log('game socket already connected');
             return;
         }
 
@@ -25,18 +69,16 @@ export async function init(params) {
         }
 
         gameSocket.onopen = () => {
-            console.log('gamesocket connection established.');
+            console.log('game socket connection established.');
             gameSocket.send(JSON.stringify({
                 type: 'initialize',
                 username: username
             }));
         };
 
-        gameSocket.onmessage = (event) => {
+        gameSocket.onmessage = async (event) => {
             const data = JSON.parse(event.data);
             console.log(data);
-
-            let finalScoreReceived = false;
 
             switch (data.type) {
                 case 'player_assignment':
@@ -68,8 +110,37 @@ export async function init(params) {
                 case 'player_disconnected':
                     gameActive = false;
                     console.log(`Game ended! Final Score: Left - ${data.scores.left}, Right - ${data.scores.right}`);
-                    alert(`Opponent has left the game! Game is ending... Winner: ${data.winner_username}`);
-                    router.navigate('/profile');
+                    let leftUsername = data.player_usernames.left;
+                    let rightUsername = data.player_usernames.right;
+                    let [leftAvatar, rightAvatar] = await Promise.all([
+                        getPlayerAvatar(leftUsername),
+                        getPlayerAvatar(rightUsername)
+                    ]);
+                    
+                    const modalBody = document.querySelector('#gameOverModal .modal-body');
+                    const playerInfos = modalBody.querySelector('.d-flex');
+                    playerInfos.innerHTML = `
+                        <div class="player-info text-center">
+                            <img src="${leftAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${leftUsername}">
+                            <h6 class="text-danger mb-1">${leftUsername}</h6>
+                            <div class="score text-danger">${data.scores.left}</div>
+                        </div>
+                        <div class="text-danger h4">VS</div>
+                        <div class="player-info text-center">
+                            <img src="${rightAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${rightUsername}">
+                            <h6 class="text-danger mb-1">${rightUsername}</h6>
+                            <div class="score text-danger">${data.scores.right}</div>
+                        </div>
+                    `;
+                    
+                    const winnerInfo = modalBody.querySelector('.winner-info');
+                    winnerInfo.innerHTML = `
+                        <h5 class="text-success">Kazanan: ${data.winner_username}</h5>
+                        <p class="text-danger">Rakip oyundan ayrıldı!</p>
+                    `;
+                    
+                    const gameOverModal = new bootstrap.Modal(document.getElementById('gameOverModal'));
+                    gameOverModal.show();
                     break;
 
                 case 'ball_update':
@@ -105,14 +176,70 @@ export async function init(params) {
 
                 case 'game_over':
                     gameActive = false;
-                    finalScoreReceived = true;
                     addWallText(data.scores.left.toString(), -15, true);
                     addWallText(data.scores.right.toString(), 15, true);
                     
-                    setTimeout(() => {
-                        alert(`Game Over! Winner: ${data.winner_username}\nScore: Left - ${data.scores.left}, Right - ${data.scores.right}`);
-                        router.navigate('/profile');
-                    }, 200);
+                    const gameOverLeftUsername = data.player_usernames.left;
+                    const gameOverRightUsername = data.player_usernames.right;
+                    const [gameOverLeftAvatar, gameOverRightAvatar] = await Promise.all([
+                        getPlayerAvatar(gameOverLeftUsername),
+                        getPlayerAvatar(gameOverRightUsername)
+                    ]);
+                    
+                    const gameOverModalBody = document.querySelector('#gameOverModal .modal-body');
+                    const gameOverPlayerInfos = gameOverModalBody.querySelector('.d-flex');
+                    gameOverPlayerInfos.innerHTML = `
+                        <div class="player-info text-center">
+                            <img src="${gameOverLeftAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${gameOverLeftUsername}">
+                            <h6 class="text-danger mb-1">${gameOverLeftUsername}</h6>
+                            <div class="score text-danger">${data.scores.left}</div>
+                        </div>
+                        <div class="text-danger h4">VS</div>
+                        <div class="player-info text-center">
+                            <img src="${gameOverRightAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${gameOverRightUsername}">
+                            <h6 class="text-danger mb-1">${gameOverRightUsername}</h6>
+                            <div class="score text-danger">${data.scores.right}</div>
+                        </div>
+                    `;
+                    
+                    const gameOverWinnerInfo = gameOverModalBody.querySelector('.winner-info');
+                    gameOverWinnerInfo.innerHTML = `
+                        <h5 class="text-success">Kazanan: ${data.winner_username}</h5>
+                    `;
+                    
+                    if (params.get('mode') === 'tournament') {
+                        const tournamentInfo = gameOverModalBody.querySelector('.tournament-info');
+                        tournamentInfo.classList.remove('d-none');
+                        
+                        if (data.is_final) {
+                            tournamentInfo.innerHTML = `
+                                <h6 class="text-danger mt-3">Turnuva Tamamlandı!</h6>
+                                <p class="text-danger">Tebrikler ${data.winner_username}!</p>
+                            `;
+                        } else if (data.next_match) {
+                            let countdown = 3;
+                            tournamentInfo.innerHTML = `
+                                <h6 class="text-danger mt-3">Final Maçı</h6>
+                                <p class="text-danger">Final maçı ${countdown} saniye içinde başlayacak...</p>
+                            `;
+                            
+                            const countdownInterval = setInterval(() => {
+                                countdown--;
+                                if (countdown > 0) {
+                                    tournamentInfo.querySelector('p').textContent = 
+                                        `Final maçı ${countdown} saniye içinde başlayacak...`;
+                                } else {
+                                    clearInterval(countdownInterval);
+                                    const modal = bootstrap.Modal.getInstance(document.getElementById('gameOverModal'));
+                                    modal.hide();
+                                    router.navigate(`/pong?room=${data.next_match.room_id}&mode=tournament`);
+                                }
+                            }, 1000);
+                        }
+                    }
+                    
+                    const gameOverModalInstance = new bootstrap.Modal(document.getElementById('gameOverModal'));
+                    gameOverModalInstance.show();
                     break;
 
                 case 'opponent_joined':
@@ -137,7 +264,7 @@ export async function init(params) {
         gameSocket.onclose = () => {
             console.log('gamesocket connection closed.');
             if (gameActive) {
-                alert('Oyun bağlantısı kesildi!');
+                alert('game connection lost!');
             }
         };
 
