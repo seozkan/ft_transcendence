@@ -93,7 +93,7 @@ async function startCountdown(roomId, opponent = null) {
             </div>
         `;
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     let countdown = 3;
@@ -151,8 +151,15 @@ export async function init() {
                 tournamentPlayers = data.players;
                 updateTournamentPlayersUI();
                 
-                setTimeout(() => {
+                setTimeout(async () => {
                     showTournamentPairings(data.pairings);
+                    
+                    const userPairing = data.pairings.find(pair => pair.includes(username));
+                    if (userPairing) {
+                        const opponent = userPairing.find(player => player !== username);
+                        const roomId = `tournament_${userPairing[0]}_${userPairing[1]}`;
+                        startCountdown(roomId, opponent);
+                    }
                 }, 1000);
                 break;
 

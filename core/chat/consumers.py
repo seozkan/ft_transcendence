@@ -117,13 +117,14 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         if not any(p['username'] == username for p in self.channel_layer.tournament_queue):
             self.channel_layer.tournament_queue.append(player_info)
         
-        for player in self.channel_layer.tournament_queue:
+        current_players = self.channel_layer.tournament_queue.copy()
+        for player in current_players:
             await self.channel_layer.group_send(
                 f'notifications_{player["username"]}',
                 {
                     'type': 'tournament_player_joined',
                     'player': player_info,
-                    'current_players': self.channel_layer.tournament_queue
+                    'current_players': current_players
                 }
             )
         
@@ -135,7 +136,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 [players[0]['username'], players[1]['username']],
                 [players[2]['username'], players[3]['username']]
             ]
-
+            
             for player in players:
                 await self.channel_layer.group_send(
                     f'notifications_{player["username"]}',

@@ -21,6 +21,15 @@ class GameConsumer(AsyncWebsocketConsumer):
             self.room_id = self.scope['url_route']['kwargs'].get('room_id')
             self.room_group_name = f'game_{self.room_id}'
             
+            if hasattr(self.channel_layer, "game_states") and self.room_id in self.channel_layer.game_states:
+                game_state = self.channel_layer.game_states[self.room_id]
+                current_username = self.scope["user"].username
+                
+                if (current_username in game_state["player_usernames"].values() or 
+                    len(game_state["players"]) >= 2):
+                    await self.close()
+                    return
+            
             await self.channel_layer.group_add(
                 self.room_group_name,
                 self.channel_name
