@@ -38,7 +38,8 @@ services:
     depends_on:
       - web
     ports:
-      - "443:443"
+    - "443:443"
+    - "80:80"
     volumes:
       - ./core/www:/usr/share/nginx/html
     networks:

@@ -153,6 +153,69 @@
         </div>
     </div>
 
+    <!-- Game Over Modal -->
+    <div class="modal fade" id="gameOverModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger">Oyun Bitti!</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap mb-3">
+                        <div class="player-info text-center">
+                        </div>
+                        <div class="text-danger h4">VS</div>
+                        <div class="player-info text-center">
+                        </div>
+                    </div>
+                    <div class="winner-info mb-3">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-danger" id="goToProfile">Profile Git</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tournament Modal -->
+    <div class="modal fade" id="tournamentModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="tournamentModalLabel">Turnuva Modu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap" id="tournamentPlayers">
+                        
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center gap-2 mt-3" id="tournamentStatus">
+                        <div class="spinner-border spinner-border-sm text-danger" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                        <span class="text-danger">Rakipler Bekleniyor...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Random Match Modal -->
+    <div class="modal fade" id="randomMatchModal" tabindex="-1" aria-labelledby="randomMatchModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="randomMatchModalLabel">Rastgele Eşleştir</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"
         integrity="sha512-ykZ1QQr0Jy/4ZkvKuqWn4iF3lqPZyij9iRv6sGqLRdTPkY69YX6+7wvVGmsdBbiIfN/8OdsI7HABjvEok6ZopQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>

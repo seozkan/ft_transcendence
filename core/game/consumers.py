@@ -14,7 +14,6 @@ class GameConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.game_mode = None
-        self.tournament_round = 0
 
     async def connect(self):
         try:
@@ -90,59 +89,6 @@ class GameConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 await self.start_game()
-
-            self.game_mode = self.scope['url_route']['kwargs'].get('mode', 'random')
-            
-            if self.game_mode == 'tournament':
-                if not hasattr(self.channel_layer, 'tournament_states'):
-                    self.channel_layer.tournament_states = {}
-                
-                if self.room_id not in self.channel_layer.tournament_states:
-                    self.channel_layer.tournament_states[self.room_id] = {
-                        'current_round': 0,
-                        'matches': {},
-                        'winners': []
-                    }
-                
-                if not hasattr(self.channel_layer, 'tournament_queue'):
-                    self.channel_layer.tournament_queue = []
-                
-                player_info = {
-                    'username': self.scope["user"].username,
-                    'avatar': self.scope["user"].avatar.url
-                }
-                
-                if player_info not in self.channel_layer.tournament_queue:
-                    self.channel_layer.tournament_queue.append(player_info)
-                
-                for player in self.channel_layer.tournament_queue:
-                    await self.channel_layer.group_send(
-                        f'notifications_{player["username"]}',
-                        {
-                            'type': 'tournament_player_joined',
-                            'player': player_info,
-                            'current_players': self.channel_layer.tournament_queue
-                        }
-                    )
-                
-                if len(self.channel_layer.tournament_queue) == 4:
-                    players = self.channel_layer.tournament_queue.copy()
-                    self.channel_layer.tournament_queue = []
-                    
-                    pairings = [
-                        [players[0]['username'], players[1]['username']],
-                        [players[2]['username'], players[3]['username']]
-                    ]
-                    
-                    for player in players:
-                        await self.channel_layer.group_send(
-                            f'notifications_{player["username"]}',
-                            {
-                                'type': 'tournament_ready',
-                                'players': players,
-                                'pairings': pairings
-                            }
-                        )
 
         except Exception as e:
             print(f"Connection Error: {e}")
@@ -275,7 +221,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await asyncio.sleep(0.2)
         game_state["ball_position"] = {"x": 0, "z": 0}
         game_state["ball_velocity"] = {"x": 5 * (-1 if game_state["ball_velocity"]["x"] > 0 else 1), "z": 5}
-
+    
     async def receive(self, text_data):
         data = json.loads(text_data)
         
@@ -418,29 +364,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                 "player_usernames": event["player_usernames"] if "player_usernames" in event else game_state["player_usernames"]
             }
             
-            if self.game_mode == 'tournament':
-                tournament_state = self.channel_layer.tournament_states.get(self.room_id)
-                if tournament_state:
-                    response_data["is_final"] = tournament_state['current_round'] == 1
-                    
-                    if not response_data["is_final"] and event["winner_username"] in tournament_state['winners']:
-                        next_room_id = f"{self.room_id}_final"
-                        response_data["next_match"] = {
-                            "room_id": next_room_id,
-                            "players": tournament_state['winners']
-                        }
-            
             await self.send(text_data=json.dumps(response_data))
 
     async def match_cancelled(self, event):
         await self.send(text_data=json.dumps({
             'type': 'match_cancelled',
             'username': event['username']
-        }))
-
-    async def tournament_player_left(self, event):
-        await self.send(text_data=json.dumps({
-            'type': 'tournament_player_left',
-            'username': event['username'],
-            'current_players': event['current_players']
         }))

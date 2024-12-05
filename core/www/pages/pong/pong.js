@@ -1,4 +1,4 @@
-import { getUserName, router, getUserInfo } from '../../code.js';
+import { getUserName, notificationSocket, router, getUserInfo } from '../../code.js';
 
 async function getPlayerAvatar(username) {
     const userInfo = await getUserInfo(username);
@@ -6,47 +6,14 @@ async function getPlayerAvatar(username) {
 }
 
 export async function init(params) {
-    const modalHTML = `
-    <div class="modal fade" id="gameOverModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title text-danger">Oyun Bitti!</h5>
-                </div>
-                <div class="modal-body text-center">
-                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap mb-3">
-                        <div class="player-info text-center">
-                            <!-- Sol oyuncu bilgileri buraya gelecek -->
-                        </div>
-                        <div class="text-danger h4">VS</div>
-                        <div class="player-info text-center">
-                            <!-- Sağ oyuncu bilgileri buraya gelecek -->
-                        </div>
-                    </div>
-                    <div class="winner-info mb-3">
-                        <!-- Kazanan bilgisi buraya gelecek -->
-                    </div>
-                    <div class="tournament-info d-none">
-                        <!-- Turnuva bilgileri buraya gelecek -->
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-danger" id="goToProfile">Profile Git</button>
-                </div>
-            </div>
-        </div>
-    </div>`;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-
     document.getElementById('goToProfile').addEventListener('click', () => {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('gameOverModal'));
-        modal.hide();
+        bootstrap.Modal.getInstance(document.getElementById('gameOverModal')).hide();
         router.navigate('/profile');
     });
-
+    
     const username = await getUserName();
     let roomId = params.get('room');
+    
     if (!roomId) {
         alert("Oda numarası bulunamadı!");
         router.navigate('/profile');
@@ -55,8 +22,10 @@ export async function init(params) {
 
     let playerSide = null;
     let gameSocket = null;
+    
 
     async function connectToGameSocket() {
+
         if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
             console.log('game socket already connected');
             return;
@@ -78,7 +47,6 @@ export async function init(params) {
 
         gameSocket.onmessage = async (event) => {
             const data = JSON.parse(event.data);
-            console.log(data);
 
             switch (data.type) {
                 case 'player_assignment':
@@ -139,8 +107,6 @@ export async function init(params) {
                         <p class="text-danger">Rakip oyundan ayrıldı!</p>
                     `;
                     
-                    const gameOverModal = new bootstrap.Modal(document.getElementById('gameOverModal'));
-                    gameOverModal.show();
                     break;
 
                 case 'ball_update':
@@ -161,7 +127,6 @@ export async function init(params) {
                 case 'score_update':
                     addWallText(data.scores.left.toString(), -15, true);
                     addWallText(data.scores.right.toString(), 15, true);
-                    console.log(`Score Update: Left Player - ${data.scores.left}, Right Player - ${data.scores.right}`);
                     break;
 
                 case 'game_start':
@@ -175,6 +140,13 @@ export async function init(params) {
                     break;
 
                 case 'game_over':
+                    if (username === data.winner_username) {
+                        await notificationSocket.send(JSON.stringify({
+                            type: 'tournament_winner',
+                            username: data.winner_username
+                        }));
+                    }
+
                     gameActive = false;
                     addWallText(data.scores.left.toString(), -15, true);
                     addWallText(data.scores.right.toString(), 15, true);
@@ -207,39 +179,7 @@ export async function init(params) {
                         <h5 class="text-success">Kazanan: ${data.winner_username}</h5>
                     `;
                     
-                    if (params.get('mode') === 'tournament') {
-                        const tournamentInfo = gameOverModalBody.querySelector('.tournament-info');
-                        tournamentInfo.classList.remove('d-none');
-                        
-                        if (data.is_final) {
-                            tournamentInfo.innerHTML = `
-                                <h6 class="text-danger mt-3">Turnuva Tamamlandı!</h6>
-                                <p class="text-danger">Tebrikler ${data.winner_username}!</p>
-                            `;
-                        } else if (data.next_match) {
-                            let countdown = 3;
-                            tournamentInfo.innerHTML = `
-                                <h6 class="text-danger mt-3">Final Maçı</h6>
-                                <p class="text-danger">Final maçı ${countdown} saniye içinde başlayacak...</p>
-                            `;
-                            
-                            const countdownInterval = setInterval(() => {
-                                countdown--;
-                                if (countdown > 0) {
-                                    tournamentInfo.querySelector('p').textContent = 
-                                        `Final maçı ${countdown} saniye içinde başlayacak...`;
-                                } else {
-                                    clearInterval(countdownInterval);
-                                    const modal = bootstrap.Modal.getInstance(document.getElementById('gameOverModal'));
-                                    modal.hide();
-                                    router.navigate(`/pong?room=${data.next_match.room_id}&mode=tournament`);
-                                }
-                            }, 1000);
-                        }
-                    }
-                    
-                    const gameOverModalInstance = new bootstrap.Modal(document.getElementById('gameOverModal'));
-                    gameOverModalInstance.show();
+                    bootstrap.Modal.getInstance(document.getElementById('gameOverModal')).show();
                     break;
 
                 case 'opponent_joined':
@@ -565,4 +505,3 @@ export async function init(params) {
 
     connectToGameSocket();
 }
-

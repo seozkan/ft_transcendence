@@ -1,6 +1,6 @@
 import { getUserName, notificationSocket, router, getUserInfo } from '../../code.js';
 
-let currentGameMode = null;
+let gameMode = null;
 let tournamentPlayers = [];
 
 async function getPlayerAvatar(username) {
@@ -11,7 +11,7 @@ async function getPlayerAvatar(username) {
 async function initializeRandomMatch() {
     const username = await getUserName();
     const userAvatar = await getPlayerAvatar(username);
-    
+
     const randomMatchModal = document.querySelector('#randomMatchModal .modal-body');
     randomMatchModal.innerHTML = `
         <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
@@ -44,11 +44,10 @@ async function initializeRandomMatch() {
 async function initializeTournament() {
     const username = await getUserName();
     const userAvatar = await getPlayerAvatar(username);
-    
-    tournamentPlayers = [];
+
     updateTournamentPlayersUI();
     updateTournamentStatus('Oyuncular Bekleniyor...');
-    
+
     await notificationSocket.send(JSON.stringify({
         type: 'tournament_join',
         username: username,
@@ -63,18 +62,19 @@ async function initializeTournament() {
 }
 
 async function startCountdown(roomId, opponent = null) {
-    const statusElement = document.querySelector('#randomMatchModal .modal-body');
+    const randomMatchElement = document.querySelector('#randomMatchModal .modal-body');
     const randomMatchModal = document.querySelector('#randomMatchModal');
     const tournamentModal = document.querySelector('#tournamentModal');
+    const tournamentMatchElement = document.querySelector('#tournamentModal .modal-body');
     const bsRandomMatchModal = bootstrap.Modal.getInstance(randomMatchModal);
     const bsTournamentModal = bootstrap.Modal.getInstance(tournamentModal);
 
-    if (opponent && statusElement) {
+    if (opponent) {
         const opponentAvatar = await getPlayerAvatar(opponent);
         const username = await getUserName();
         const userAvatar = await getPlayerAvatar(username);
-        
-        statusElement.innerHTML = `
+
+        const matchHTML = `
             <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
                 <div class="match-player text-center">
                     <img src="${userAvatar}" class="rounded-circle border border-danger mb-3" width="80" height="80" alt="${username}">
@@ -89,30 +89,42 @@ async function startCountdown(roomId, opponent = null) {
                 </div>
             </div>
             <div class="text-center mt-3">
-                <span class="text-danger">Rakip Bulundu!</span>
+                <span class="text-danger">${gameMode === "random" ? "Rakip Bulundu!" : "Turnuva Oyuncu Eşleşmesi"}</span>
             </div>
         `;
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (gameMode === "random") {
+            randomMatchElement.innerHTML = matchHTML;
+            bsRandomMatchModal.show();
+        } else {
+            tournamentMatchElement.innerHTML = matchHTML;
+            bsTournamentModal.show();
+        }
     }
 
     let countdown = 3;
-    
+
     const countdownInterval = setInterval(() => {
-        if (statusElement) {
-            statusElement.innerHTML = `
-                <div class="text-center">
-                    <h6 class="text-danger">Oyun ${countdown} saniye içinde başlıyor...</h6>
-                </div>
-            `;
+        const countdownHTML = `
+            <div class="text-center">
+                <h6 class="text-danger">Oyun ${countdown} saniye içinde başlıyor...</h6>
+            </div>
+        `;
+        if (gameMode === "random") {
+            randomMatchElement.innerHTML = countdownHTML;
+        } else {
+            tournamentMatchElement.innerHTML = countdownHTML;
         }
         countdown--;
-        
+
         if (countdown < 0) {
             clearInterval(countdownInterval);
-            if (bsRandomMatchModal) bsRandomMatchModal.hide();
-            if (bsTournamentModal) bsTournamentModal.hide();
-            router.navigate(`/pong?room=${roomId}&mode=${currentGameMode}`);
+            if (gameMode === "random") {
+                bsRandomMatchModal.hide();
+            } else {
+                bsTournamentModal.hide();
+            }
+            router.navigate(`/pong?room=${roomId}&mode=${gameMode}`);
         }
     }, 1000);
 }
@@ -120,67 +132,49 @@ async function startCountdown(roomId, opponent = null) {
 export async function init() {
 
     document.querySelector('[data-bs-target="#tournamentModal"]').addEventListener('click', () => {
-        currentGameMode = 'tournament';
+        gameMode = 'tournament';
         initializeTournament();
     });
 
     document.querySelector('[data-bs-target="#randomMatchModal"]').addEventListener('click', async () => {
-        currentGameMode = 'random';
+        gameMode = 'random';
         await initializeRandomMatch();
     });
 
     notificationSocket.addEventListener('message', async (event) => {
         const data = JSON.parse(event.data);
         const username = await getUserName();
-        
-        switch(data.type) {
+
+        switch (data.type) {
             case 'tournament_player_joined':
-                tournamentPlayers = data.current_players || [];
+                tournamentPlayers = data.current_players;
                 updateTournamentPlayersUI();
                 updateTournamentStatus(`${tournamentPlayers.length}/4 Oyuncu (${4 - tournamentPlayers.length} oyuncu bekleniyor)`);
                 break;
 
             case 'tournament_player_left':
-                tournamentPlayers = data.current_players || [];
+                tournamentPlayers = data.current_players;
                 updateTournamentPlayersUI();
                 updateTournamentStatus(`${tournamentPlayers.length}/4 Oyuncu (${4 - tournamentPlayers.length} oyuncu bekleniyor)`);
                 break;
 
             case 'tournament_ready':
-                updateTournamentStatus('Eşleşmeler Belirleniyor...');
                 tournamentPlayers = data.players;
+                updateTournamentStatus('Eşleşmeler Belirleniyor...');
                 updateTournamentPlayersUI();
-                
-                setTimeout(async () => {
-                    showTournamentPairings(data.pairings);
-                    
-                    const userPairing = data.pairings.find(pair => pair.includes(username));
-                    if (userPairing) {
-                        const opponent = userPairing.find(player => player !== username);
-                        const roomId = `tournament_${userPairing[0]}_${userPairing[1]}`;
-                        startCountdown(roomId, opponent);
-                    }
-                }, 1000);
-                break;
+                showTournamentPairings(data.pairings);
 
-            case 'tournament_match_ready':
-                if (data.players.includes(username)) {
-                    const opponent = data.players.find(player => player !== username);
-                    updateTournamentStatus('Maç Başlıyor!');
-                    startCountdown(data.roomId, opponent);
+                const userPairing = data.pairings.find(pair => pair.includes(username));
+                if (userPairing) {
+                    const opponent = userPairing.find(player => player !== username);
+                    const roomId = `tournament_${userPairing[0]}_${userPairing[1]}`;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    startCountdown(roomId , opponent);
                 }
                 break;
 
-            case 'tournament_final':
-                if (data.players.includes(username)) {
-                    const opponent = data.players.find(player => player !== username);
-                    updateTournamentStatus('Final Maçı Başlıyor!');
-                    startCountdown(data.roomId, opponent);
-                }
-                break;
-                
-            case 'match_ready':
-                if (currentGameMode === 'random') {
+            case 'random_match_ready':
+                if (gameMode === 'random') {
                     const opponent = data.players.find(player => player.username !== username);
                     if (opponent) {
                         startCountdown(data.roomId, opponent.username);
@@ -188,35 +182,13 @@ export async function init() {
                 }
                 break;
 
-            case 'random_player_joined':
-                const randomMatchModal = document.querySelector('#randomMatchModal .modal-body');
-                if (randomMatchModal) {
-                    const currentPlayers = data.current_players || [];
-                    randomMatchModal.innerHTML = `
-                        <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
-                            ${currentPlayers.map(player => `
-                                <div class="match-player text-center">
-                                    <img src="${player.avatar}" class="rounded-circle border border-danger mb-3" width="80" height="80" alt="${player.username}">
-                                    <h5 class="mb-3 text-danger">${player.username}</h5>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="d-flex align-items-center justify-content-center gap-2">
-                            <div class="spinner-border spinner-border-sm text-danger" role="status">
-                                <span class="visually-hidden">Yükleniyor...</span>
-                            </div>
-                            <span class="text-danger">Rakip Bekleniyor...</span>
-                        </div>
-                    `;
-                }
-                break;
         }
     });
 }
 
 function updateTournamentPlayersUI() {
     const tournamentPlayersElement = document.getElementById('tournamentPlayers');
-    
+
     if (tournamentPlayers.length === 0) {
         tournamentPlayersElement.innerHTML = `
             <div class="text-center text-danger">
@@ -225,7 +197,7 @@ function updateTournamentPlayersUI() {
         `;
         return;
     }
-    
+
     tournamentPlayersElement.innerHTML = tournamentPlayers.map(player => `
         <div class="tournament-player">
             <img src="${player.avatar}" class="rounded-circle border border-danger mb-3" width="80" height="80" alt="${player.username}">
@@ -237,11 +209,6 @@ function updateTournamentPlayersUI() {
 function updateTournamentStatus(message, isLoading = true) {
     const tournamentStatus = document.getElementById('tournamentStatus');
     tournamentStatus.innerHTML = `
-        ${isLoading ? `
-            <div class="spinner-border spinner-border-sm text-danger" role="status">
-                <span class="visually-hidden">Yükleniyor...</span>
-            </div>
-        ` : ''}
         <span class="text-danger">${message}</span>
     `;
 }

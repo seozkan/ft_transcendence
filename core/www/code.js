@@ -2,10 +2,8 @@
 
 import Router from './router.js';
 
-// Router instance'ını export edelim
 export let router = null;
 
-// Router'ı başlat ve rotaları ekle
 const initializeRouter = async () => {
     router = new Router();
 
@@ -23,6 +21,19 @@ const initializeRouter = async () => {
     router.addRoute('/game', 'game');
 
     await router.navigate(window.location, true);
+
+    window.addEventListener('popstate', async () => {
+        const location = window.location;
+        await router.navigate(location, true);
+    });
+
+    document.body.addEventListener('click', async (event) => {
+        if (event.target.tagName === 'A' && !event.target.hasAttribute('data-no-router')) {
+            event.preventDefault();
+            const location = event.target.href;
+            await router.navigate(location);
+        }
+    });
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,6 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 export let notificationSocket = null;
 export let chatSocket = null;
+
+//Game Over Modal
+const gameOverModal = new bootstrap.Modal(document.getElementById('gameOverModal'));
 
 export function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -301,6 +315,16 @@ async function initializeNotificationSocket() {
                 showToastMessage(notification.message);
             }
             return;
+        }
+
+        else if (notification.type === 'tournament_final') {
+            const username = await getUserName();
+            if (notification.finalists.includes(username)) {
+                setTimeout(() => {
+                    gameOverModal.hide();
+                    router.navigate(`/pong?room=${notification.room_id}&mode=tournament`);
+                }, 3000);
+            }
         }
     };
 
