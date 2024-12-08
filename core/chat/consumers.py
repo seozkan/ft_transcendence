@@ -71,7 +71,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
 
-    async def notify(self, event):
+    async def notification(self, event):
         message_data = {
             'type': 'notification',
             'title': event.get('title'),
@@ -103,7 +103,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         }
         
         await self.send(text_data=json.dumps(message_data))
-
 
     #Tournament Feature
     async def tournament_join(self, event):

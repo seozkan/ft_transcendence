@@ -104,11 +104,17 @@ export async function init() {
             const message = messageInputDom.value.trim();
             
             if (message !== '') {
-                // Mesajı gönder
-                chatSocket.send(JSON.stringify({
+                await chatSocket.send(JSON.stringify({
                     'message': message,
                     'room_id': roomId
                 }));
+                await notificationSocket.send(JSON.stringify({
+                    'type': 'notification',
+                    'username': friendUsername,
+                    'title': 'Yeni Mesaj',
+                    'message': friendUsername + ': '+ message,
+                    'data': {}
+                  }));
                 await saveMessage(roomId, message);
                 
                 messageInputDom.value = '';
@@ -252,6 +258,8 @@ export async function init() {
         chatSocket.onclose = function (e) {
             console.log('chat socket closed');
         };
+
+        return chatSocket;
     }
 
     async function getOrCreateRoom(username) {
@@ -289,10 +297,11 @@ export async function init() {
                 });
             }
 
-            chatSocket.send(JSON.stringify({
+            await chatSocket.send(JSON.stringify({
                 'type': 'join_room',
                 'room_id': currentRoomId
             }));
+            
 
             return data.room_id;
         } catch (error) {
@@ -334,5 +343,8 @@ export async function init() {
     };
 
     await getFriends();
-    await connectToChat();
+
+    if (!chatSocket) {
+        chatSocket = await connectToChat();
+    }
 }

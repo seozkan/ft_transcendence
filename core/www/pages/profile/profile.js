@@ -1,6 +1,6 @@
 "use strict";
 
-import { getUserInfo, getCookie, showToastMessage, router } from '../../code.js';
+import { getUserInfo, getCookie, showToastMessage, router, notificationSocket } from '../../code.js';
 
 export async function init(params) {
   let isFriend;
@@ -106,6 +106,13 @@ export async function init(params) {
       } else {
         console.log('friend request send successfully');
         addFriendButton.innerHTML = '<i class="fa-solid fa-user-group"></i>Arkadaşlık İsteği Gönderildi';
+        await notificationSocket.send(JSON.stringify({
+          'type': 'notification',
+          'username': friendUsername,
+          'title': 'Arkadaşlık İsteği',
+          'message': `${username} size bir arkadaşlık isteği gönderdi`,
+          'data': {}
+        }));
       }
     } catch (error) {
       console.error('error:', error);

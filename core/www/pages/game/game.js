@@ -10,11 +10,9 @@ async function getUserAvatarURL(username) {
 export async function init() {
     const tournamentCard = document.getElementById('tournamentCard');
     const randomMatchCard = document.getElementById('randomMatchCard');
-    const friendMatchCard = document.getElementById('friendMatchCard');
     const gameModal = document.getElementById('gameModal');
     const bsGameModal = new bootstrap.Modal(gameModal);
     const gameModalTitle = gameModal.querySelector('.modal-title');
-    const gameModalBody = gameModal.querySelector('.modal-body');
     const gameModalFooter = document.getElementById('gameModalFooter');
     const gamePlayers = document.getElementById('players');
     const username = await getUserName();
@@ -54,10 +52,6 @@ export async function init() {
                 avatar: userAvatar
             }
         }));
-    });
-
-    friendMatchCard.addEventListener('click', (e) => {
-        gameModalTitle.textContent = 'Arkadaşınla Oyna';
     });
 
     window.currentCleanup = () => {
@@ -117,18 +111,11 @@ export async function init() {
                         clearInterval(torunamentCountdownInterval);
                         bsGameModal.hide();
                         gameModalFooter.innerHTML = '';
+                        tournamentPlayers = [];
                         router.navigate(`/pong?room=${roomId}&mode=tournament`);
                     }
                 }, 1000);
                 break;
-            case 'tournament_final':
-                if (notification.finalists.includes(username)) {
-                    setTimeout(() => {
-                        gameOverModal.hide();
-                        router.navigate(`/pong?room=${notification.room_id}&mode=tournament`);
-                    }, 3000);
-                }
-                break
 
             case 'random_match_player_joined':
                 randomMatchPlayers = data.current_players;

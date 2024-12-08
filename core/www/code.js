@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeRouter();
 });
 
-new bootstrap.Modal(document.getElementById('gameOverModal'));
+const gameOverModal = new bootstrap.Modal(document.getElementById('gameOverModal'));
 
 
 export function getCookie(name) {
@@ -313,8 +313,17 @@ async function initializeNotificationSocket() {
                 await router.navigate(`/pong?room=${notification.data.roomId}`);
                 showToastMessage('Davet Kabul Edildi!');
             }
-            else if (notification.type === 'message') {
-                showToastMessage(notification.message);
+        }
+        else if (notification.type === 'notification') {
+            showToastMessage(notification.message);
+        }
+        else if (notification.type === 'tournament_final') {
+            const username = await getUserName();
+            if (notification.finalists.includes(username)) {
+                setTimeout(() => {
+                    gameOverModal.hide();
+                    router.navigate(`/pong?room=${notification.room_id}&mode=tournament_final`);
+                }, 3000);
             }
         }
     };

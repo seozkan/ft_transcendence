@@ -32,11 +32,9 @@ export async function init(params) {
             return;
         }
 
-        if (!gameSocket) {
-            gameSocket = new WebSocket(
+        gameSocket = new WebSocket(
                 'wss://' + window.location.host + '/ws/game/' + roomId
             );
-        }
 
         gameSocket.onopen = () => {
             console.log('game socket connection established.');
@@ -141,7 +139,7 @@ export async function init(params) {
                     break;
 
                 case 'game_over':
-                    if (gameMode === 'tournament') {
+                    if (gameMode === 'tournament' || gameMode === 'tournament_final') {
                         if (username === data.winner_username) {
                             await notificationSocket.send(JSON.stringify({
                                 type: 'tournament_winner',
@@ -178,9 +176,22 @@ export async function init(params) {
                     `;
                     
                     const gameOverWinnerInfo = gameOverModalBody.querySelector('.winner-info');
-                    gameOverWinnerInfo.innerHTML = `
+                    if (gameMode === 'tournament' && data.winner_username === username) {
+                        gameOverWinnerInfo.innerHTML = `
                         <h5 class="text-success">Kazanan: ${data.winner_username}</h5>
-                    `;
+                        `;
+                    }
+                    else if (gameMode === 'tournament_final' && data.winner_username === username ){
+                        gameOverWinnerInfo.innerHTML = `
+                        <h5 class="text-success">ŞAMPİYON: ${data.winner_username}</h5>
+                        `;
+                    }
+                    else {
+                        gameOverWinnerInfo.innerHTML = `
+                        <h5 class="text-success">Kazanan: ${data.winner_username} sıradaki maç için bekleniyor.</h5>
+                        `;
+                    }
+                    
                     
                     bootstrap.Modal.getInstance(document.getElementById('gameOverModal')).show();
                     break;
@@ -214,6 +225,8 @@ export async function init(params) {
         gameSocket.onerror = function (error) {
             console.log('game socket error', error);
         };
+
+        return gameSocket;
     }
 
     const scene = new THREE.Scene();
@@ -435,5 +448,7 @@ export async function init(params) {
         roomId = null;
     };
 
-    connectToGameSocket();
+    if (!gameSocket) {
+        gameSocket = await connectToGameSocket();
+    }
 }

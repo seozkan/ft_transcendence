@@ -3,7 +3,7 @@
 import { getCookie } from '../../code.js';
 
 export async function init(params) {
-    async function acceptFriendRequest(username, notificationDiv) {
+    async function acceptFriendRequest(username) {
         const accessToken = getCookie('access_token');
         const csrfToken = getCookie('csrftoken');
 
@@ -36,7 +36,7 @@ export async function init(params) {
         }
     }
 
-    async function rejectFriendRequest(username, notificationDiv) {
+    async function rejectFriendRequest(username) {
         const accessToken = getCookie('access_token');
         const csrfToken = getCookie('csrftoken');
 
@@ -115,8 +115,8 @@ export async function init(params) {
                         </div>
                     `;
 
-                    notificationDiv.querySelector('.accept-btn').addEventListener("click", async () => await acceptFriendRequest(notification.message, notificationDiv));
-                    notificationDiv.querySelector('.reject-btn').addEventListener("click", async () => await rejectFriendRequest(notification.message, notificationDiv));
+                    notificationDiv.querySelector('.accept-btn').addEventListener("click", async () => await acceptFriendRequest(notification.message));
+                    notificationDiv.querySelector('.reject-btn').addEventListener("click", async () => await rejectFriendRequest(notification.message));
 
                     notificationBody.appendChild(notificationDiv);
                 });
