@@ -28,7 +28,10 @@ class Router {
     const publicPaths = ['/', '/tfa', '/login', '/register'];
 
     if (accessToken) {
-      await ConnectNotificationSocket();
+      const username = await getUserName();
+      if (username) {
+        await ConnectNotificationSocket();
+      }
     }
 
     if (!publicPaths.includes(path)) {

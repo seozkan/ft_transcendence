@@ -39,7 +39,7 @@
                 <hr class="bg-white border-2 border-top border-white w-100">
                 <div class="offcanvas-body text-light">
                     <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
-                        <ul class="nav nav-pills flex-column"> 
+                        <ul class="nav nav-pills flex-column">
                             <li class="nav-item mb-2">
                                 <a href="/game" class="nav-link bg-light text-dark fw-light" data-link>
                                     <i class="fa-solid fa-gamepad me-1" style="font-size: large;"></i>
@@ -79,7 +79,8 @@
     </header>
 
     <!-- TOAST Message -->
-    <div id="toastMessage" class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger" role="alert">
+    <div id="toastMessage" class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger"
+        role="alert">
         <div class="toast-header">
             <i class="fa-regular fa-bell me-1"></i>
             <h6 class="text-body-secondary fw-light m-0 me-auto">Bildirim</h6>
@@ -91,7 +92,8 @@
 
 
     <!-- INVITE Message -->
-    <div id="inviteMessage" class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger" role="alert">
+    <div id="inviteMessage" class="toast position-absolute bottom-0 start-50 translate-middle-x mb-1 bg-danger"
+        role="alert">
         <div class="toast-header">
             <i class="fa-regular fa-bell me-1"></i>
             <h6 class="text-body-secondary fw-light m-0 me-auto"></h6>
@@ -107,8 +109,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5 text-dark">Ayarlar</h1>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="card card-body border-danger mt-2">
@@ -126,20 +127,21 @@
     </div>
 
     <!-- TFA Modal -->
-    <div class="modal fade" id="tfaModal" tabindex="-1" aria-labelledby="tfaModalLabel" aria-hidden="true">
+    <div class="modal fade" id="tfaModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-dark border-danger shadow card">
                 <div class="modal-header">
                     <h5 class="modal-title" id="tfaModalLabel">İki Adımlı Doğrulama Aktivasyonu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="tfaInputForm" class="modal-body">
                     <p class="text-center">QR kodunuzu kimlik doğrulama uygulamanıza okutunuz.</p>
+                    <input type="text" name="username" id="tfaUsername" autocomplete="username" style="display: none;">
                     <div class="d-flex justify-content-center my-3">
                         <img id="qr-code" src="" alt="QR Code" class="img-fluid rounded shadow" style="width: 12rem;">
                     </div>
                     <input class="form-control form-control-sm my-3 p-2" type="password" name="tfa" id="tfaInput"
-                        placeholder="Doğrulama Kodu" required>
+                        placeholder="Doğrulama Kodu" autocomplete="new-password" required>
                     <div class="invalid-feedback text-center">
                         2FA Doğrulaması Başarısız!
                     </div>
@@ -154,11 +156,12 @@
     </div>
 
     <!-- Game Over Modal -->
-    <div class="modal fade" id="gameOverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="gameOverModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h5 class="modal-title text-danger">Oyun Bitti!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
                     <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap mb-3">
@@ -178,39 +181,20 @@
         </div>
     </div>
 
-    <!-- Tournament Modal -->
-    <div class="modal fade" id="tournamentModal">
+    <!-- Game Mode Modal -->
+    <div class="modal fade" id="gameModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title text-danger" id="tournamentModalLabel">Turnuva Modu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                    <h5 class="modal-title text-danger"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center py-4">
-                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap" id="tournamentPlayers">
-                        
-                    </div>
-                    <div class="d-flex align-items-center justify-content-center gap-2 mt-3" id="tournamentStatus">
-                        <div class="spinner-border spinner-border-sm text-danger" role="status">
-                            <span class="visually-hidden">Yükleniyor...</span>
-                        </div>
-                        <span class="text-danger">Rakipler Bekleniyor...</span>
+                <div class="modal-body">
+                    <div id="players" class="d-flex align-items-center justify-content-center flex-wrap gap-2">
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Random Match Modal -->
-    <div class="modal fade" id="randomMatchModal" tabindex="-1" aria-labelledby="randomMatchModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title text-danger" id="randomMatchModalLabel">Rastgele Eşleştir</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
-                </div>
-                <div class="modal-body text-center py-4">
+                <div class="modal-footer">
+                    <h6 id="gameModalFooter" class="text-center text-danger"></h6>
                 </div>
             </div>
         </div>
@@ -223,4 +207,5 @@
     <script type="module" src="router.js"></script>
     <script type="module" src="code.js"></script>
 </body>
+
 </html>

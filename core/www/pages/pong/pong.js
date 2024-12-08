@@ -13,6 +13,7 @@ export async function init(params) {
     
     const username = await getUserName();
     let roomId = params.get('room');
+    const gameMode = params.get('mode');
     
     if (!roomId) {
         alert("Oda numarası bulunamadı!");
@@ -140,11 +141,13 @@ export async function init(params) {
                     break;
 
                 case 'game_over':
-                    if (username === data.winner_username) {
-                        await notificationSocket.send(JSON.stringify({
-                            type: 'tournament_winner',
-                            username: data.winner_username
-                        }));
+                    if (gameMode === 'tournament') {
+                        if (username === data.winner_username) {
+                            await notificationSocket.send(JSON.stringify({
+                                type: 'tournament_winner',
+                                username: data.winner_username
+                            }));
+                        }
                     }
 
                     gameActive = false;
@@ -202,7 +205,7 @@ export async function init(params) {
         };
 
         gameSocket.onclose = () => {
-            console.log('gamesocket connection closed.');
+            console.log('game socket connection closed.');
             if (gameActive) {
                 alert('game connection lost!');
             }
@@ -253,76 +256,6 @@ export async function init(params) {
         camera.aspect = aspect;
         camera.updateProjectionMatrix();
     }
-
-    let isMouseDown = false;
-    let previousMousePosition = { x: 0, y: 0 };
-    let isDragging = false;
-    let isRotating = false;
-
-    renderer.domElement.addEventListener('mousedown', (event) => {
-        isMouseDown = true;
-        previousMousePosition = { x: event.clientX, y: event.clientY };
-
-        if (event.button === 0) {
-            isDragging = true;
-        }
-        else if (event.button === 2) {
-            isRotating = true;
-        }
-    });
-
-    renderer.domElement.addEventListener('mouseup', () => {
-        isMouseDown = false;
-        isDragging = false;
-        isRotating = false;
-    });
-
-    renderer.domElement.addEventListener('mousemove', (event) => {
-        if (!isMouseDown) return;
-
-        const deltaX = event.clientX - previousMousePosition.x;
-        const deltaY = event.clientY - previousMousePosition.y;
-        const moveSpeed = 0.1;
-        const rotateSpeed = 0.01;
-
-        if (isDragging) {
-            camera.position.x -= deltaX * moveSpeed;
-            camera.position.y -= deltaY * moveSpeed;
-        }
-        else if (isRotating) {
-            camera.position.x = camera.position.x * Math.cos(deltaX * rotateSpeed) + camera.position.z * Math.sin(deltaX * rotateSpeed);
-            camera.position.z = -camera.position.x * Math.sin(deltaX * rotateSpeed) + camera.position.z * Math.cos(deltaX * rotateSpeed);
-
-            const radius = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z);
-            camera.position.y -= deltaY * moveSpeed;
-
-            camera.position.y = Math.max(Math.min(camera.position.y, 50), -50);
-        }
-
-        camera.lookAt(scene.position);
-        previousMousePosition = { x: event.clientX, y: event.clientY };
-    });
-
-    renderer.domElement.addEventListener('mouseleave', () => {
-        isMouseDown = false;
-        isDragging = false;
-        isRotating = false;
-    });
-
-    renderer.domElement.addEventListener('wheel', (event) => {
-        const zoomSpeed = 0.1;
-        camera.position.z += event.deltaY * zoomSpeed;
-
-        camera.position.z = Math.max(Math.min(camera.position.z, 100), 10);
-
-        camera.lookAt(scene.position);
-        event.preventDefault();
-    });
-
-    renderer.domElement.addEventListener('contextmenu', (event) => {
-        event.preventDefault();
-    });
-
 
     loader.load('https://www.manytextures.com/thumbnail/43/512/smooth+sand+dunes.jpg', (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
@@ -498,7 +431,6 @@ export async function init(params) {
             gameActive = false;
             gameSocket.close();
             gameSocket = null;
-            console.log('game socket connection closed');
         }
         roomId = null;
     };

@@ -3,6 +3,7 @@
 import Router from './router.js';
 
 export let router = null;
+export let notificationSocket = null;
 
 const initializeRouter = async () => {
     router = new Router();
@@ -40,11 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeRouter();
 });
 
-export let notificationSocket = null;
-export let chatSocket = null;
+new bootstrap.Modal(document.getElementById('gameOverModal'));
 
-//Game Over Modal
-const gameOverModal = new bootstrap.Modal(document.getElementById('gameOverModal'));
 
 export function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -184,7 +182,10 @@ document.getElementById('logout').addEventListener('click', async () => {
         document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         showToastMessage('Çıkış Yapıldı!')
         if (notificationSocket)
+        {
             notificationSocket.close();
+            notificationSocket = null;
+        }
     } catch (error) {
         console.error('error:', error);
     }
@@ -272,10 +273,11 @@ async function updateNotifications() {
     }
 })();
 
+//Socket Init
 async function initializeNotificationSocket() {
     if (notificationSocket && notificationSocket.readyState === WebSocket.OPEN) {
         console.log('Notification socket already connected');
-        return notificationSocket;
+        return;
     }
 
     notificationSocket = new WebSocket(
@@ -313,17 +315,6 @@ async function initializeNotificationSocket() {
             }
             else if (notification.type === 'message') {
                 showToastMessage(notification.message);
-            }
-            return;
-        }
-
-        else if (notification.type === 'tournament_final') {
-            const username = await getUserName();
-            if (notification.finalists.includes(username)) {
-                setTimeout(() => {
-                    gameOverModal.hide();
-                    router.navigate(`/pong?room=${notification.room_id}&mode=tournament`);
-                }, 3000);
             }
         }
     };

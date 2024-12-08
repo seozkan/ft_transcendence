@@ -54,14 +54,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        await self.accept()
+
         self.notification_group_name = f'notifications_{self.scope["user"].username}'
 
         await self.channel_layer.group_add(
             self.notification_group_name,
             self.channel_name
         )
-
-        await self.accept()
+        
 
     async def disconnect(self, close_code):
         if hasattr(self, 'notification_group_name'):
@@ -155,7 +156,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'tournament_player_joined',
             'player': event.get('player'),
-            'current_players': event.get('current_players', [])
+            'current_players': event.get('current_players')
         }))
 
     async def tournament_ready(self, event):
@@ -178,6 +179,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         
         if not any(p['username'] == username for p in self.channel_layer.random_match_queue):
             self.channel_layer.random_match_queue.append(player_info)
+            players = self.channel_layer.random_match_queue.copy()
+            
+            for player in players:
+                await self.channel_layer.group_send(
+                    f'notifications_{player["username"]}',
+                    {
+                        'type': 'random_match_player_joined',
+                        'player': player_info,
+                        'current_players': self.channel_layer.random_match_queue
+                    }
+                )
         
         if len(self.channel_layer.random_match_queue) == 2:
             players = self.channel_layer.random_match_queue.copy()
@@ -202,22 +214,38 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'roomId': event.get('roomId')
         }))
 
-    async def tournament_winner(self, event):
-        finalists = self.channel_layer.tournament_finalist
-        if event['username'] not in finalists:
-            finalists.append(event['username'])
+    async def random_match_player_joined(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'random_match_player_joined',
+            'player': event.get('player'),
+            'current_players': event.get('current_players')
+        }))
 
-        if (len(finalists) == 2):
-            players = self.channel_layer.tournament_queue
-            for player in players:
-                await self.channel_layer.group_send(
-                    f'notifications_{player["username"]}',
-                    {
-                        'type': 'tournament_final',
-                        'finalists': finalists,
-                        'room_id' : f"tournamet_final_{finalists[0]}_{finalists[1]}"
-                    }
-                )
+    async def tournament_winner(self, event):
+        if not hasattr(self.channel_layer, 'tournament_finalist'):
+            self.channel_layer.tournament_finalist = []
+        
+        try:
+            finalists = self.channel_layer.tournament_finalist
+            if event['username'] not in finalists:
+                finalists.append(event['username'])
+
+            if (len(finalists) == 2):
+                players = self.channel_layer.tournament_queue
+                for player in players:
+                    await self.channel_layer.group_send(
+                        f'notifications_{player["username"]}',
+                        {
+                            'type': 'tournament_final',
+                            'finalists': finalists,
+                            'room_id' : f"tournamet_final_{finalists[0]}_{finalists[1]}"
+                        }
+                    )
+        except Exception as e:
+            await self.send_json({
+                'type': 'error',
+                'message': 'Tournament winner process failed'
+            })
 
     async def tournament_final(self, event):        
         await self.send(text_data=json.dumps({
