@@ -275,41 +275,6 @@ switchElement.addEventListener('change', async function () {
     }
 });
 
-//Check Notifications
-async function updateNotifications() {
-    const accessToken = getCookie('access_token');
-    if (!accessToken) return;
-
-    const notificationSpan = document.querySelector('#notification span');
-    try {
-        const response = await fetch('/accounts/check_notifications', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            console.error('network error:', data);
-            return;
-        }
-
-        const data = await response.json();
-        notificationSpan.innerHTML = data.notifications ? data.notifications.length : '0';
-    } catch (error) {
-        console.warn('Bildirimler kontrol edilirken hata oluştu:', error);
-        notificationSpan.innerHTML = '0';
-    }
-}
-
-(async () => {
-    const accessToken = getCookie('access_token');
-    if (accessToken) {
-        await updateNotifications();
-    }
-})();
-
 //Socket Init
 async function initializeNotificationSocket() {
     if (notificationSocket && notificationSocket.readyState === WebSocket.OPEN) {
@@ -353,6 +318,12 @@ async function initializeNotificationSocket() {
         }
         else if (notification.type === 'notification') {
             showToastMessage(notification.message);
+            if (notification.title === 'Arkadaşlık İsteği') {
+                const notificationSpan = document.querySelector('#notification span');
+                if (notificationSpan) {
+                    notificationSpan.textContent = parseInt(notificationSpan.textContent) + 1;
+                }
+            }
         }
         else if (notification.type === 'tournament_final') {
             const username = await getUserName();
