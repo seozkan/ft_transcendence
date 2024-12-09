@@ -7,3 +7,24 @@ main {
 .card {
   background-color: rgba(255, 255, 255, 0.7);
 }
+
+.status-dot {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.online {
+  background-color: #28a745;
+}
+
+.offline {
+  background-color: #dc3545;
+}
+
+.table th,
+.table td {
+  text-align: center;
+  vertical-align: middle;
+}

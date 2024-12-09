@@ -69,6 +69,7 @@ export async function init(params) {
             } else {
                 if (data.access_token) {
                     document.cookie = `access_token=${data.access_token}; path=/;`;
+                    document.cookie = `refresh_token=${data.refresh_token}; path=/;`;
                     await router.navigate('/profile');
                 } else if (data.uuid) {
                     document.cookie = `uuid=${data.uuid}; path=/;`;

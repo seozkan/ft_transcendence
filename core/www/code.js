@@ -50,6 +50,44 @@ export function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
+async function getNewToken() {
+    const csrfToken = getCookie('csrftoken');
+    const refreshToken = getCookie('refresh_token');
+
+    try {
+        const response = await fetch('/accounts/get_new_token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ refresh_token: refreshToken })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error('error:', data);
+            return;
+        }
+
+        document.cookie = `access_token=${data.access_token}; path=/;`;
+        document.cookie = `refresh_token=${data.refresh_token}; path=/;`;
+    } catch (error) {
+        console.error('error:', error);
+    }
+}
+
+export function checkTokenExpired(token) {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const expiry = payload.exp;
+    const now = Math.floor(Date.now() / 1000);
+
+    if ((expiry - now) < 3600) {
+        getNewToken();
+    }
+}
+
 export async function getUserInfo(username) {
     const accessToken = getCookie('access_token');
 
@@ -128,7 +166,7 @@ export const showInviteMessage = async (header = 'Bildirim', message, notificati
 
     header_text.innerHTML = header;
     const toastBody = toast.querySelector('.toast-body');
-    
+
     const buttons = `
         <div>${message}</div>
         <div class="mt-2">
@@ -137,12 +175,12 @@ export const showInviteMessage = async (header = 'Bildirim', message, notificati
         </div>
     `;
     toastBody.innerHTML = buttons;
-    
+
     document.getElementById('acceptInvite').addEventListener('click', async () => {
         const toastInstance = bootstrap.Toast.getInstance(toast);
         toastInstance.hide();
-        
-        
+
+
         if (notification.data && notification.data.sender) {
             await notificationSocket.send(JSON.stringify({
                 'type': 'invite_accepted',
@@ -151,7 +189,7 @@ export const showInviteMessage = async (header = 'Bildirim', message, notificati
                 'message': `${username} oyun davetinizi kabul etti`,
                 'data': {
                     'sender': username,
-                    'roomId' : notification.data.roomId
+                    'roomId': notification.data.roomId
                 }
             }));
             await router.navigate(`/pong?room=${notification.data.roomId}`);
@@ -181,8 +219,7 @@ document.getElementById('logout').addEventListener('click', async () => {
         document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         showToastMessage('Çıkış Yapıldı!')
-        if (notificationSocket)
-        {
+        if (notificationSocket) {
             notificationSocket.close();
             notificationSocket = null;
         }
@@ -297,16 +334,16 @@ async function initializeNotificationSocket() {
         }
     };
 
-    notificationSocket.onopen = function() {
+    notificationSocket.onopen = function () {
         console.log('notification socket connection successful');
         reconnectAttempts = 0;
     };
 
     notificationSocket.onmessage = async function (e) {
         const notification = JSON.parse(e.data);
-        
+
         if (notification.type === 'invite_accepted' || notification.type === 'invite') {
-            if(notification.type === 'invite') {
+            if (notification.type === 'invite') {
                 await showInviteMessage(notification.title, notification.message, notification);
             }
             else if (notification.type === 'invite_accepted') {
@@ -328,7 +365,7 @@ async function initializeNotificationSocket() {
         }
     };
 
-    notificationSocket.onerror = function(error) {
+    notificationSocket.onerror = function (error) {
         console.error('notification socket error:', error);
         if (notificationSocket.readyState !== WebSocket.OPEN) {
             reconnect();

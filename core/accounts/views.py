@@ -18,7 +18,7 @@ class AuthViewset(viewsets.ViewSet):
         payload = {
             'user_id': str(user_id),
             'jti': str(uuid.uuid4()),
-            'exp': datetime.now(tz=timezone.utc) + timedelta(minutes=60),
+            'exp': datetime.now(tz=timezone.utc) + timedelta(minutes=1440),
             'iat': datetime.now(tz=timezone.utc)
         }
         access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
@@ -34,8 +34,20 @@ class AuthViewset(viewsets.ViewSet):
         refresh_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
         return refresh_token
     
-    def get_intra_access_token(self, request):
+    def get_new_token(self,request):
+        refresh_token = request.data.get('refresh_token')
 
+        try:
+            jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=["HS256"])
+            return Response({"access_token" : self.create_access_token(request.user.id), 'refresh_token' : self.create_refresh_token(request.user.id)})
+        except jwt.DecodeError:
+            return Response({"error": "not enough segments in token"}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    def get_intra_access_token(self, request):
         try:
             code = request.query_params['code']
             intra_auth_url = "https://api.intra.42.fr/oauth/token"
@@ -152,7 +164,6 @@ class AuthViewset(viewsets.ViewSet):
             return Response({'success': 'user created'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
     
     def user_login(self, request):
         email = request.data.get('email')

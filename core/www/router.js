@@ -1,6 +1,6 @@
 "use strict";
 
-import { showToastMessage, getUserName, getCookie, ConnectNotificationSocket } from './code.js';
+import { showToastMessage, getUserName, getCookie, ConnectNotificationSocket , checkTokenExpired } from './code.js';
 
 class Router {
   constructor() {
@@ -20,6 +20,9 @@ class Router {
     }
 
     const accessToken = getCookie('access_token');
+    if (accessToken) {
+      checkTokenExpired(accessToken);
+    }
 
     const url = new URL(location, window.location.origin);
     let path = url.pathname;

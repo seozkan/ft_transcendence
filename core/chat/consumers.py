@@ -55,21 +55,56 @@ class ChatConsumer(AsyncWebsocketConsumer):
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
-
+        
         self.notification_group_name = f'notifications_{self.scope["user"].username}'
-
+        
+        if not hasattr(self.channel_layer, 'online_users'):
+            self.channel_layer.online_users = set()
+            
+        self.channel_layer.online_users.add(self.scope["user"].username)
+        
+        await self.channel_layer.group_add('online', self.channel_name)
+        
+        await self.channel_layer.group_send(
+            'online',
+            {
+                'type': 'user_status_update',
+                'online_users': list(self.channel_layer.online_users)
+            }
+        )
+        
         await self.channel_layer.group_add(
             self.notification_group_name,
             self.channel_name
         )
-        
 
     async def disconnect(self, close_code):
         if hasattr(self, 'notification_group_name'):
+            if hasattr(self.channel_layer, 'online_users'):
+                self.channel_layer.online_users.discard(self.scope["user"].username)
+                
+                await self.channel_layer.group_send(
+                    'online',
+                    {
+                        'type': 'user_status_update',
+                        'online_users': list(self.channel_layer.online_users)
+                    }
+                )
+            
             await self.channel_layer.group_discard(
                 self.notification_group_name,
                 self.channel_name
             )
+            await self.channel_layer.group_discard(
+                'online',
+                self.channel_name
+            )
+
+    async def user_status_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'user_status_update',
+            'online_users': event['online_users']
+        }))
 
     async def notification(self, event):
         message_data = {
@@ -285,6 +320,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                         'finalists': data.get('finalists')
                     }
                 )
+            elif notification_type == 'get_online_users':
+                await self.send(text_data=json.dumps({
+                    'type': 'user_status_update',
+                    'online_users': list(self.channel_layer.online_users) if hasattr(self.channel_layer, 'online_users') else []
+                }))
             else:
                 target_username = data.get('username')
                 title = data.get('title')
