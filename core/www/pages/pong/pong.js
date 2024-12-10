@@ -89,21 +89,21 @@ export async function init(params) {
                     playerInfos.innerHTML = `
                         <div class="player-info text-center">
                             <img src="${leftAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${leftUsername}">
-                            <h6 class="text-danger mb-1">${leftUsername}</h6>
-                            <div class="score text-danger">${data.scores.left}</div>
+                            <h6 class="text-light mb-1">${leftUsername}</h6>
+                            <div class="score text-light">${data.scores.left}</div>
                         </div>
-                        <div class="text-danger h4">VS</div>
+                        <div class="text-light h4">VS</div>
                         <div class="player-info text-center">
                             <img src="${rightAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${rightUsername}">
-                            <h6 class="text-danger mb-1">${rightUsername}</h6>
-                            <div class="score text-danger">${data.scores.right}</div>
+                            <h6 class="text-light mb-1">${rightUsername}</h6>
+                            <div class="score text-light">${data.scores.right}</div>
                         </div>
                     `;
                     
                     const winnerInfo = modalBody.querySelector('.winner-info');
                     winnerInfo.innerHTML = `
-                        <h5 class="text-success">Kazanan: ${data.winner_username}</h5>
-                        <p class="text-danger">Rakip oyundan ayrıldı!</p>
+                        <h5 class="p-2 bg-success bg-gradient rounded text-light">Kazanan: ${data.winner_username}</h5>
+                        <p class="text-light">Rakip oyundan ayrıldı!</p>
                     `;
                     
                     break;
@@ -137,8 +137,21 @@ export async function init(params) {
                         gameActive = true;
                     }
                     break;
-
+                    
                 case 'game_over':
+                    const gameOverLeftUsername = data.player_usernames.left;
+                    const gameOverRightUsername = data.player_usernames.right;
+                    const [gameOverLeftAvatar, gameOverRightAvatar] = await Promise.all([
+                        getPlayerAvatar(gameOverLeftUsername),
+                        getPlayerAvatar(gameOverRightUsername)
+                    ]);
+                    
+                    const gameOverModalBody = document.querySelector('#gameOverModal .modal-body');
+                    const gameOverPlayerInfos = gameOverModalBody.querySelector('.d-flex');
+                    const gameOverWinnerInfo = gameOverModalBody.querySelector('.winner-info');
+
+                    gameOverWinnerInfo.innerHTML = '';
+
                     if (gameMode === 'tournament' || gameMode === 'tournament_final') {
                         if (username === data.winner_username) {
                             await notificationSocket.send(JSON.stringify({
@@ -152,44 +165,56 @@ export async function init(params) {
                     addWallText(data.scores.left.toString(), -15, true);
                     addWallText(data.scores.right.toString(), 15, true);
                     
-                    const gameOverLeftUsername = data.player_usernames.left;
-                    const gameOverRightUsername = data.player_usernames.right;
-                    const [gameOverLeftAvatar, gameOverRightAvatar] = await Promise.all([
-                        getPlayerAvatar(gameOverLeftUsername),
-                        getPlayerAvatar(gameOverRightUsername)
-                    ]);
                     
-                    const gameOverModalBody = document.querySelector('#gameOverModal .modal-body');
-                    const gameOverPlayerInfos = gameOverModalBody.querySelector('.d-flex');
                     gameOverPlayerInfos.innerHTML = `
                         <div class="player-info text-center">
                             <img src="${gameOverLeftAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${gameOverLeftUsername}">
-                            <h6 class="text-danger mb-1">${gameOverLeftUsername}</h6>
-                            <div class="score text-danger">${data.scores.left}</div>
+                            <h6 class="text-light mb-1">${gameOverLeftUsername}</h6>
+                            <div class="score text-light">${data.scores.left}</div>
                         </div>
-                        <div class="text-danger h4">VS</div>
+                        <div class="text-light h4">VS</div>
                         <div class="player-info text-center">
                             <img src="${gameOverRightAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${gameOverRightUsername}">
-                            <h6 class="text-danger mb-1">${gameOverRightUsername}</h6>
-                            <div class="score text-danger">${data.scores.right}</div>
+                            <h6 class="text-light mb-1">${gameOverRightUsername}</h6>
+                            <div class="score text-light">${data.scores.right}</div>
                         </div>
                     `;
                     
-                    const gameOverWinnerInfo = gameOverModalBody.querySelector('.winner-info');
-                    if (gameMode === 'tournament' && data.winner_username === username) {
-                        gameOverWinnerInfo.innerHTML = `
-                        <h5 class="text-success">Kazanan: ${data.winner_username}</h5>
-                        `;
+                    if (gameMode === 'tournament') {
+                        if (data.winner_username === username) {
+                            gameOverWinnerInfo.innerHTML = `
+                            <h5 class="p-2 bg-success bg-gradient rounded text-light">Final maçı için bekleniyorsunuz.</h5>
+                            `;
+                        }
+                        else {
+                            gameOverWinnerInfo.innerHTML = `
+                            <h5 class="p-2 bg-danger bg-gradient rounded text-light">Kaybettiniz!</h5>
+                            `;
+                        }
                     }
-                    else if (gameMode === 'tournament_final' && data.winner_username === username ){
-                        gameOverWinnerInfo.innerHTML = `
-                        <h5 class="text-success">ŞAMPİYON: ${data.winner_username}</h5>
-                        `;
+                    else if (gameMode === 'tournament_final'){
+                        if (data.winner_username === username) {
+                            gameOverWinnerInfo.innerHTML = `
+                            <h5 class="p-2 bg-success bg-gradient rounded text-light">ŞAMPİYON oldunuz!</h5>
+                            `;
+                        }
+                        else {
+                            gameOverWinnerInfo.innerHTML = `
+                            <h5 class="p-2 bg-danger bg-gradient rounded text-light">Kaybettiniz!</h5>
+                            `;
+                        }
                     }
-                    else {
-                        gameOverWinnerInfo.innerHTML = `
-                        <h5 class="text-success">Kazanan: ${data.winner_username} sıradaki maç için bekleniyor.</h5>
-                        `;
+                    else if (gameMode === 'random'){
+                        if (data.winner_username === username) {
+                            gameOverWinnerInfo.innerHTML = `
+                            <h5 class="p-2 bg-success bg-gradient rounded text-light">Kazandınız!</h5>
+                            `;
+                        }
+                        else {
+                            gameOverWinnerInfo.innerHTML = `
+                            <h5 class="p-2 bg-danger bg-gradient rounded text-light">Kaybettiniz!</h5>
+                            `;
+                        }
                     }
                     
                     

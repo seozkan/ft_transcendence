@@ -19,7 +19,7 @@ export async function init(params) {
 
     blockeds.forEach(user => {
       if (username === user.blocker) {
-        buttonGroup.innerHTML = '<p class="text-center">Bu kullanıcı sizi engellediğinden profil sayfasını görüntüleyemezsiniz.</p>';
+        buttonGroup.innerHTML = '<p class="text-center text-light">Bu kullanıcı sizi engellediğinden profil sayfasını görüntüleyemezsiniz.</p>';
         showToastMessage('Bu kullanıcı sizi engelledi.');
         return;
       }

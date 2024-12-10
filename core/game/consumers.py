@@ -292,7 +292,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 if game_state["is_game_active"] and game_state["scores"]["left"] < 10 and game_state["scores"]["right"] < 10:
                     game_state["is_game_active"] = False
                     other_side = "right" if self.player_side == "left" else "left"
-                    game_state["scores"][self.player_side] = 0
+                    game_state["scores"][self.player_side] = None
                     game_state["scores"][other_side] = 3
                     
                     other_username = game_state["player_usernames"][other_side]

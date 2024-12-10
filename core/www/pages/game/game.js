@@ -73,7 +73,7 @@ export async function init() {
                             <img src="${player.avatar}"
                                 class="rounded-circle border border-danger mb-3" width="80" height="80"
                                 alt="${player.username}">
-                            <h5 class="mb-3 text-danger">${player.username}</h5>
+                            <h5 class="mb-3 text-light">${player.username}</h5>
                         </div>
                     `;
                 });
@@ -98,7 +98,7 @@ export async function init() {
                             <img src="${avatar}"
                                 class="rounded-circle border border-danger mb-3" width="80" height="80"
                                 alt="${player}">
-                            <h5 class="mb-3 text-danger">${player}</h5>
+                            <h5 class="mb-3 text-light">${player}</h5>
                         </div>
                     `;
                 }
@@ -126,7 +126,7 @@ export async function init() {
                             <img src="${player.avatar}"
                                 class="rounded-circle border border-danger mb-3" width="80" height="80"
                                 alt="${player.username}">
-                            <h5 class="mb-3 text-danger">${player.username}</h5>
+                            <h5 class="mb-3 text-light">${player.username}</h5>
                         </div>
                     `;
                 });

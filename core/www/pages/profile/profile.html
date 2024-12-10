@@ -3,19 +3,19 @@
         <h2 class="text-center fw-light text-light mt-2">Profil</h2>
         <div class="row justify-content-center mt-5">
             <div class="col-md-6 mt-4">
-                <div class="card color border-danger text-dark shadow card">
+                <div class="text-dark shadow bodyCard">
                     <div class="card-body position-relative text-center p-4">
                         <img id="profile-image" src=""
-                            class="img-fluid position-absolute top-0 start-50 translate-middle border border-danger rounded-circle shadow"
+                            class="img-fluid position-absolute top-0 start-50 translate-middle rounded-circle shadow"
                             style="height: 7rem; width: 7rem; object-fit: cover;">
                         <div class="mt-5">
-                            <h5 id="profile-text-name" class="fw-light mb-1">Adınız</h5>
-                            <h6 id="profile-text-username" class="fw-light mb-2">@kullaniciadi</h6>
-                            <h6 id="profile-text-email" class="fw-light mb-2">ornek@example.com</h6>
+                            <h5 id="profile-text-name" class="text-light mb-1">Adınız</h5>
+                            <h6 id="profile-text-username" class="text-light fw-light mb-2">@kullaniciadi</h6>
+                            <h6 id="profile-text-email" class="text-light fw-light mb-2">ornek@example.com</h6>
                         </div>
                     </div>
                 </div>
-                <div id="buttonGroup" class="d-flex flex-column card color border border-danger mt-3 justify-content-between p-2 w-100">
+                <div id="buttonGroup" class="d-flex flex-column card color mt-3 justify-content-between p-2 w-100">
                     <button id="addFriendButton" class="btn color my-1">
                         <i class="fa-solid fa-user-group ms-1"></i>
                         Arkadaş Ekle
@@ -37,10 +37,10 @@
     <!-- Friend Modal -->
     <div class="modal" id="friendModal">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content color">
+            <div class="modal-content color bodyCard">
                 <div class="modal-header">
                     <h5 class="modal-title text-dark">Onay Kutusu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-dark">
                     <p>Arkadaşlıktan çıkarmak istediğinize emin misiniz?</p>

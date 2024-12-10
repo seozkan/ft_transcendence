@@ -1,33 +1,27 @@
-.gradient-custom {
+main {
     background-color: black;
-    background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/1515.jpg');
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                      url('https://4kwallpapers.com/images/walls/thumbs_3t/5095.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
 }
 
-.mask-custom {
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 2px solid rgba(255, 0, 0, 0.5);
-    border-radius: 1em;
-    backdrop-filter: blur(10px);
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
+.card {
+    background: rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    transition: 0.5s ease;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 12px;
 }
 
-::-webkit-scrollbar {
-    width: 8px;
+.card-body
+{
+    color: white;
 }
 
-::-webkit-scrollbar-track {
-    background: #333;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
+.sender
+{
+    color:aliceblue;
 }

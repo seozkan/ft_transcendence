@@ -1,11 +1,47 @@
 main {
   background-color: black;
   background-size: cover;
-  background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/6971.jpg');
+  background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/15485.jpg');
 }
 
-.card {
-  background-color: rgba(255, 255, 255, 0.7);
+.leaderboardTable {
+  background: linear-gradient(to left top, rgba(255, 255, 255, 0.3), rgba(28, 47, 57, 0.6));
+  transition: 0.5s ease;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 12px;
+}
+
+.leaderBoard {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  border: none;
+}
+
+.leaderBoard th, .leaderBoard td {
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+}
+
+.leaderBoard th {
+  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.6);
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.leaderBoard td {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.leaderBoard tr {
+  transition: 0.2s;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.leaderBoard tr:hover {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 1);
 }
 
 .status-dot {
@@ -16,15 +52,9 @@ main {
 }
 
 .online {
-  background-color: #28a745;
+  background-color: #00ff3c;
 }
 
 .offline {
-  background-color: #dc3545;
-}
-
-.table th,
-.table td {
-  text-align: center;
-  vertical-align: middle;
+  background-color: #ff0019;
 }

@@ -185,6 +185,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                         'pairings': pairings
                     }
                 )
+            self.channel_layer.tournament_queue = []
 
     async def tournament_player_joined(self, event):
         await self.send(text_data=json.dumps({
@@ -256,25 +257,23 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         }))
 
     async def tournament_winner(self, event):
-        if not hasattr(self.channel_layer, 'tournament_finalist'):
-            self.channel_layer.tournament_finalist = []
-        
         try:
             finalists = self.channel_layer.tournament_finalist
             if event['username'] not in finalists:
                 finalists.append(event['username'])
 
             if (len(finalists) == 2):
-                players = self.channel_layer.tournament_queue
-                for player in players:
+                for player in finalists:
                     await self.channel_layer.group_send(
-                        f'notifications_{player["username"]}',
+                        f'notifications_{player}',
                         {
                             'type': 'tournament_final',
                             'finalists': finalists,
                             'room_id' : f"tournamet_final_{finalists[0]}_{finalists[1]}"
                         }
                     )
+                self.channel_layer.tournament_finalist = []
+
         except Exception as e:
             await self.send_json({
                 'type': 'error',
@@ -287,9 +286,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'finalists': event.get('finalists'),
             'room_id' : event.get('room_id')
         }))
-
-        self.channel_layer.tournament_queue = []
-        self.channel_layer.tournament_finalist= []
     
     async def receive(self, text_data):
         try:

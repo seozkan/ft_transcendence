@@ -3,9 +3,83 @@ main {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/6720.jpg');
+    background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/3926.jpg');
 }
 
-.color {
-    background-color: rgba(255, 255, 255, 0.8);
+#profile-image
+{
+    background-color: rgb(62, 60, 68);
+}
+
+.bodyCard
+{
+    background: linear-gradient(to left top, 
+    rgba(255, 255, 255, 0.3),
+    rgba(28, 47, 57, 0.6));
+    transition: 0.5s ease;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 12px;
+}
+
+.bodyCard:hover {
+    background: rgba(255, 255, 255, 0.146);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    transform: perspective(15px) rotateY(-0.05deg) rotateX(0.05deg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+
+#buttonGroup
+{
+    background: linear-gradient(to left top, 
+    rgba(255, 255, 255, 0.3),
+    rgba(28, 47, 57, 0.6));
+    transition: 0.5s ease;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 12px;
+}
+
+#buttonGroup button
+{
+    background:rgba(255, 255, 255, 0.5);
+    transition: 0.5s ease;
+    overflow: hidden;
+    border: white;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+#buttonGroup button:hover
+{
+    background:rgba(255, 255, 255, 0.8);
+    transition: 0.5s ease;
+    border: white;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+#buttonGroup button::before
+{
+    content: '';
+    position: absolute;
+    background: linear-gradient(to left top, 
+    rgba(255, 255, 255, 1),
+    transparent);
+    top: 0;
+    left: -50px;
+    height: 100%;
+    width: 0%;
+    z-index: -1;
+    transition: 1s;
+    transform: skewX(-30deg);
+}
+
+#buttonGroup button:hover::before
+{
+    width: 120%;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 1);
 }

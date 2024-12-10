@@ -194,7 +194,7 @@ export async function init() {
                   <div data-mdb-input-init class="form-outline form-white">
                     <textarea class="form-control" rows="4"></textarea>
                     <button id="sendButton" type="button" class="btn btn-light btn-rounded float-end mt-3" disabled>Gönder</button>
-                    <button id="inviteButton" type="button" class="btn btn-dark btn-rounded float-end mt-3 me-2">Oyuna Davet Et</button>
+                    <button id="inviteButton" type="button" class="btn btn-danger btn-rounded float-end mt-3 me-2">Oyuna Davet Et</button>
                   </div>
                 </li>
             `
