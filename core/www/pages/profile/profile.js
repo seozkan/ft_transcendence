@@ -1,6 +1,6 @@
 "use strict";
 
-import { getUserInfo, getCookie, showToastMessage, router, notificationSocket } from '../../code.js';
+import { getUserInfo, getCookie, showToastMessage, router, notificationSocket, getUserName } from '../../code.js';
 
 export async function init(params) {
   let isFriend;
@@ -10,7 +10,7 @@ export async function init(params) {
   const username = params.get('username');
   const buttonGroup = document.getElementById("buttonGroup");
   const blockUserButton = document.getElementById('blockUserButton');
-  if (!username) {
+  if (username === await getUserName()) {
     buttonGroup.classList.add('d-none');
   }
 
@@ -77,6 +77,8 @@ export async function init(params) {
     }
   })
 
+
+  //Send Friend Request
   async function sendFriendRequest() {
     const friendUsername = document.querySelector('#profile-text-username').innerText;
     const accessToken = getCookie('access_token');
@@ -360,6 +362,99 @@ export async function init(params) {
       showToastMessage('Arkadaşınız olmayan bir kullanıcıya mesaj gönderemezsiniz!');
   });
 
+  // Display User Games
+  async function displayUserGames(username) {
+    const accessToken = getCookie('access_token');
+    const match_history = document.getElementById('match-history');
+
+    if (!username) {
+      username = await getUserName();
+    }
+
+    try {
+      const response = await fetch(`/api/get_user_games/${username}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('error:', data);
+        return;
+      }
+
+      data.forEach(element => {
+        match_history.innerHTML += `
+          <div class="text-light text-center matchCard list-group-item d-flex justify-content-between align-items-center color border-transparent">
+            <div class="col-3">
+              <small>${new Date(element.played_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</small>
+            </div>
+            <div class="d-flex justify-content-between align-items-center col-6">
+              <div class="col-6">
+                <p class="mb-0">${element.winner_username}</p>
+                <p class="mb-0">${element.winnerScore}</p>
+              </div>
+              <div class="col-6">
+                <p class="mb-0">${element.loser_username}</p>
+                <p class="mb-0">${element.loserScore}</p>
+              </div>
+            </div>
+            <div class="col-3">
+              <span class="${element.winner_username === username ? 'winBadges' : 'loseBadges'}">
+                ${element.winner_username === username ? 'Galibiyet' : 'Mağlubiyet'}
+              </span>
+            </div>
+          </div>
+        `;
+      });
+
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  // Display User Stats
+  async function displayUserStats(username) {
+    const accessToken = getCookie('access_token');
+    const winsCount = document.getElementById('wins-count');
+    const lossesCount = document.getElementById('losses-count');
+    const winRate = document.getElementById('win-rate');
+
+    if (!username) {
+      username = await getUserName();
+    }
+
+    try {
+      const response = await fetch(`/api/get_stats/${username}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('error:', data);
+        return;
+      }
+
+      winsCount.innerHTML = data.wins;
+      lossesCount.innerHTML = data.losses;
+      winRate.innerHTML = `%${data.win_rate}`
+      
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+  
   await displayUserInfo(username);
+  await displayUserStats(username);
+  await displayUserGames(username);
   await checkIfFriend();
 }

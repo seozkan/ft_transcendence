@@ -39,7 +39,7 @@ INTRA_AUTH_URL = os.environ.get('INTRA_AUTH_URL')
 SERVER_NAME = os.environ.get('SERVER_NAME')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 

@@ -2,6 +2,13 @@
 
 import { router, getCookie } from '../../code.js';
 
+function validateUsername(username) {
+  const usernameRegex = /^[a-zA-Z0-9]+$/;
+  return username.length > 3 && 
+         username.length < 100 && 
+         usernameRegex.test(username);
+}
+
 export async function init(params) {
   document.getElementById("personalizeForm").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -9,11 +16,18 @@ export async function init(params) {
 
     const InvalidUsername = document.getElementById('InvalidUsername');
     const avatar = document.getElementById('avatarFileInput').files[0];
-    const nicknameInput = document.getElementById('nicknameInput');
+    const usernameInput = document.getElementById('nicknameInput');
+
+    if (!validateUsername(usernameInput.value)) {
+      InvalidUsername.textContent = "Kullanıcı adı sadece harf ve rakam içerebilir en az 4, en fazla 99 karakterden oluşmalıdır";
+      InvalidUsername.style.display = "block";
+      usernameInput.classList.add("is-invalid");
+      return;
+    }
 
     const formData = new FormData();
     formData.append('avatar', avatar);
-    formData.append('username', nicknameInput.value);
+    formData.append('username', usernameInput.value);
 
     async function update_ui() {
       const accessToken = getCookie('access_token');
@@ -31,7 +45,7 @@ export async function init(params) {
 
         if (!response.ok) {
           if (response.status == 409) {
-            nicknameInput.classList.add('is-invalid');
+            usernameInput.classList.add('is-invalid');
             InvalidUsername.innerHTML = 'Bu kullanıcı adı daha önce alınmış!';
           }
           else if (response.status === 404) {

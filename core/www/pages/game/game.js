@@ -54,11 +54,18 @@ export async function init() {
         }));
     });
 
+    const handleModalHide = () => {
+        console.log('Modal kapatıldı');
+    };
+
     window.currentCleanup = () => {
         if (notificationSocket) {
             notificationSocket.removeEventListener('message', handleNotificationMessage);
         }
+        gameModal.removeEventListener('hide.bs.modal', handleModalHide);
     };
+
+    gameModal.addEventListener('hide.bs.modal', handleModalHide);
 
     const handleNotificationMessage = async (event) => {
         const data = JSON.parse(event.data);

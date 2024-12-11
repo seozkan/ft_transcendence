@@ -29,6 +29,37 @@
                         Engelle
                     </button>
                 </div>
+
+                <!-- Statistics Card -->
+                <div class="bodyCard card color border-transparent text-dark shadow card mt-3">
+                    <div class="card-body text-light">
+                        <h5 class="fw-light mb-3 text-center">Oyun İstatistikleri</h5>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h6 class="fw-light">Galibiyet</h6>
+                                <span id="wins-count"></span>
+                            </div>
+                            <div class="col-4">
+                                <h6 class="fw-light">Mağlubiyet</h6>
+                                <span id="losses-count"></span>
+                            </div>
+                            <div class="col-4">
+                                <h6 class="fw-light">Kazanma Olasılığı</h6>
+                                <span id="win-rate"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Match History Card -->
+                <div class="bodyCard card color border-transparent text-dark shadow card mt-3">
+                    <div class="card-body">
+                        <h5 class="fw-light mb-3 text-center text-light">Maç Geçmişi</h5>
+                        <div id="match-history" class="list-group list-group-flush">
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

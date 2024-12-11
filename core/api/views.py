@@ -1,8 +1,9 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from django.db.models import Q
 from django.contrib.auth import get_user_model
-from .serializers import UserSerializer, PlayerSerializer
-from accounts.models import Player, FriendRequest , Friendship, Notification, BlockedUser
+from .serializers import UserSerializer, GameSerializer
+from accounts.models import FriendRequest , Friendship, Notification, BlockedUser, Game
 import pyotp
 import qrcode
 from io import BytesIO
@@ -263,9 +264,89 @@ class UserViewset(viewsets.ViewSet):
             return Response({'error': 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def get_users_by_score(self, request):
+        try:
+            User = get_user_model()
+            users = User.objects.all().order_by('-score')
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class PlayerViewSet(viewsets.ViewSet):
-    def get_all_player(self, request):
-        queryset = Player.objects.all().order_by('-score')
-        serializer = PlayerSerializer(queryset, many=True)
-        return Response(serializer.data)
+class GameViewSet(viewsets.ViewSet):
+    def create_game(self, request):
+        try:
+            winner_username = request.data.get('winner_username')
+            loser_username = request.data.get('loser_username')
+            winner_score = request.data.get('winner_score')
+            loser_score = request.data.get('loser_score')
+            
+            User = get_user_model()
+            winner = User.objects.get(username=winner_username)
+            loser = User.objects.get(username=loser_username)
+            
+            Game.objects.create(
+                winner=winner,
+                loser=loser,
+                winnerScore = winner_score,
+                loserScore = loser_score
+            )
+            
+            winner.score += 10
+            winner.save()
+            
+            return Response({'success': 'Game recorded successfully'}, status=status.HTTP_201_CREATED)
+            
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get_user_games(self, request, *args, **kwargs):
+        username = kwargs.get('username')
+        if (username == 'null'):
+            username = request.user.username
+        try:
+            User = get_user_model()
+            
+            user = User.objects.get(username=username)
+            games = Game.objects.filter(
+                Q(winner=user) | Q(loser=user)
+            ).order_by('-played_at')
+            
+            serializer = GameSerializer(games, many=True)
+            print(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get_stats(self, request,  *args, **kwargs):
+        username = kwargs.get('username')
+        if (username == 'null'):
+            username = request.user.username
+        try:
+            User = get_user_model()
+            
+            user = User.objects.get(username=username)
+            wins = Game.objects.filter(winner=user).count()
+            losses = Game.objects.filter(loser=user).count()
+            total_games = wins + losses
+            win_rate = round((wins / total_games * 100) if total_games > 0 else 0)
+            
+            stats = {
+                'total_games': total_games,
+                'wins': wins,
+                'losses': losses,
+                'win_rate': win_rate
+            }
+            
+            return Response(stats, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

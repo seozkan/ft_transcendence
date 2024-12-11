@@ -355,15 +355,25 @@ class GameConsumer(AsyncWebsocketConsumer):
         if self.room_id in self.channel_layer.game_states:
             game_state = self.channel_layer.game_states[self.room_id]
             game_state["is_game_active"] = False
-            
+
+            winner = event["winner"]
+            loser = "right" if winner == "left" else "left"
+            winner_username = event["winner_username"]
+            loser_username = game_state["player_usernames"][loser]
+            winner_score = game_state["scores"][winner]
+            loser_score = game_state["scores"][loser]
+
             response_data = {
                 "type": "game_over",
-                "winner": event["winner"],
-                "winner_username": event["winner_username"],
+                "winner": winner,
+                "winner_username": winner_username,
+                "loser_username": loser_username,
                 "scores": event["scores"],
-                "player_usernames": event["player_usernames"] if "player_usernames" in event else game_state["player_usernames"]
+                "player_usernames": event["player_usernames"] if "player_usernames" in event else game_state["player_usernames"],
+                "winner_score": winner_score,
+                "loser_score": loser_score
             }
-            
+
             await self.send(text_data=json.dumps(response_data))
 
     async def match_cancelled(self, event):

@@ -1,8 +1,39 @@
-import { getUserName, notificationSocket, router, getUserInfo } from '../../code.js';
+import { getUserName, getUserInfo, getCookie, notificationSocket, router } from '../../code.js';
 
 async function getPlayerAvatar(username) {
     const userInfo = await getUserInfo(username);
     return userInfo.avatar_url;
+}
+
+async function createGame(winnerUsername, loserUsername, winnerScore, loserScore) {
+    const accessToken = getCookie('access_token');
+    const csrfToken = getCookie('csrftoken');
+
+    try {
+        const response = await fetch('/api/create_game', {
+            method: 'POST',
+            headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                winner_username : winnerUsername,
+                loser_username : loserUsername,
+                winner_score : winnerScore,
+                loser_score : loserScore
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error(data.error);
+        }
+
+    } catch (error) {
+        console.error('Oyun kaydedilemedi:', error);
+    }
 }
 
 export async function init(params) {
@@ -139,6 +170,11 @@ export async function init(params) {
                     break;
                     
                 case 'game_over':
+                    if (username === data.winner_username) {
+                        await createGame(data.winner_username, data.loser_username, data.winner_score, data.loser_score);
+                    }
+                    
+
                     const gameOverLeftUsername = data.player_usernames.left;
                     const gameOverRightUsername = data.player_usernames.right;
                     const [gameOverLeftAvatar, gameOverRightAvatar] = await Promise.all([
@@ -204,7 +240,7 @@ export async function init(params) {
                             `;
                         }
                     }
-                    else if (gameMode === 'random'){
+                    else {
                         if (data.winner_username === username) {
                             gameOverWinnerInfo.innerHTML = `
                             <h5 class="p-2 bg-success bg-gradient rounded text-light">Kazandınız!</h5>

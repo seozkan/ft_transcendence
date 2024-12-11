@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 import uuid
+from django.db.models import Q
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -28,16 +29,17 @@ def user_avatar_path(instance, filename):
 class CustomUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(("email adresi"), unique=True)
-    username = models.CharField(max_length=200, unique=True, blank=True, null=True)
+    username = models.CharField(max_length=100, unique=True, blank=True, null=True)
     avatar = models.ImageField(
         upload_to=user_avatar_path, 
         blank=True, 
         null=True, 
-        default='avatars/default_avatar.jpg'
+        default='avatars/default_avatar.jpg'    
     )
     isTfaActive = models.BooleanField(("2FA Etkin"),default=False)
     tfaSecret = models.CharField(("2FA Anahtarı"),max_length=200, blank=True, null=True)
     objects = CustomUserManager()
+    score = models.IntegerField(default = 0)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [""]
@@ -47,8 +49,6 @@ class CustomUser(AbstractUser):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if not self.is_superuser and not hasattr(self, 'player'):
-            Player.objects.create(player=self)
 
     def send_request(self, friend):
         if not self.is_friend(friend) and not self.has_pending_friend_request(friend):
@@ -86,10 +86,16 @@ class CustomUser(AbstractUser):
 
     def get_blocked_users(self):
         return CustomUser.objects.filter(blocked_by__blocker=self)
-    
-class Player(models.Model):
-    player = models.OneToOneField(CustomUser, related_name='player', on_delete=models.CASCADE)
-    score = models.IntegerField(default = 0)
+
+class Game(models.Model):
+    winner = models.ForeignKey(CustomUser, related_name='won_games', on_delete=models.CASCADE)
+    loser = models.ForeignKey(CustomUser, related_name='lost_games', on_delete=models.CASCADE)
+    played_at = models.DateTimeField(auto_now_add=True)
+    winnerScore = models.IntegerField(default=0)
+    loserScore = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.winner.username} vs {self.loser.username} - {self.played_at.strftime('%d/%m/%Y')}"
 
 class Friendship(models.Model):
     user1 = models.ForeignKey(CustomUser, related_name='friendship_initiated', on_delete=models.CASCADE)

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UserViewset, PlayerViewSet
+from .views import UserViewset, GameViewSet
 
 urlpatterns = [
     path('users/<str:username>', UserViewset.as_view({'get': 'get_user_info'})),
@@ -16,5 +16,8 @@ urlpatterns = [
     path('unblock_user', UserViewset.as_view({'post': 'unblock_user'})),
     path('get_blocked_users', UserViewset.as_view({'get': 'get_blocked_users'})),
     path('get_friends', UserViewset.as_view({'get': 'get_friends'})),
-    path('get_all_player', PlayerViewSet.as_view({'get' : 'get_all_player'}))
+    path('get_users_by_score', UserViewset.as_view({'get' : 'get_users_by_score'})),
+    path('create_game', GameViewSet.as_view({'post': 'create_game'})),
+    path('get_user_games/<str:username>', GameViewSet.as_view({'get': 'get_user_games'})),
+    path('get_stats/<str:username>', GameViewSet.as_view({'get': 'get_stats'}))
 ]
