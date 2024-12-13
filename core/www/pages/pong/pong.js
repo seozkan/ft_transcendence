@@ -37,10 +37,12 @@ async function createGame(winnerUsername, loserUsername, winnerScore, loserScore
 }
 
 export async function init(params) {
-    document.getElementById('goToProfile').addEventListener('click', () => {
+    const handleProfileClick = () => {
         bootstrap.Modal.getInstance(document.getElementById('gameOverModal')).hide();
         router.navigate('/profile');
-    });
+    };
+
+    document.getElementById('goToProfile').addEventListener('click', handleProfileClick);
     
     const username = await getUserName();
     let roomId = params.get('room');
@@ -105,40 +107,6 @@ export async function init(params) {
                     console.log(`You are playing on the ${playerSide} side as ${data.username}`);
                     break;
 
-                case 'player_disconnected':
-                    gameActive = false;
-                    console.log(`Game ended! Final Score: Left - ${data.scores.left}, Right - ${data.scores.right}`);
-                    let leftUsername = data.player_usernames.left;
-                    let rightUsername = data.player_usernames.right;
-                    let [leftAvatar, rightAvatar] = await Promise.all([
-                        getPlayerAvatar(leftUsername),
-                        getPlayerAvatar(rightUsername)
-                    ]);
-                    
-                    const modalBody = document.querySelector('#gameOverModal .modal-body');
-                    const playerInfos = modalBody.querySelector('.d-flex');
-                    playerInfos.innerHTML = `
-                        <div class="player-info text-center">
-                            <img src="${leftAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${leftUsername}">
-                            <h6 class="text-light mb-1">${leftUsername}</h6>
-                            <div class="score text-light">${data.scores.left}</div>
-                        </div>
-                        <div class="text-light h4">VS</div>
-                        <div class="player-info text-center">
-                            <img src="${rightAvatar}" class="rounded-circle border border-danger mb-2" width="64" height="64" alt="${rightUsername}">
-                            <h6 class="text-light mb-1">${rightUsername}</h6>
-                            <div class="score text-light">${data.scores.right}</div>
-                        </div>
-                    `;
-                    
-                    const winnerInfo = modalBody.querySelector('.winner-info');
-                    winnerInfo.innerHTML = `
-                        <h5 class="p-2 bg-success bg-gradient rounded text-light">Kazanan: ${data.winner_username}</h5>
-                        <p class="text-light">Rakip oyundan ayrıldı!</p>
-                    `;
-                    
-                    break;
-
                 case 'ball_update':
                     ball.position.x = data.position.x;
                     ball.position.z = data.position.z;
@@ -173,7 +141,6 @@ export async function init(params) {
                     if (username === data.winner_username) {
                         await createGame(data.winner_username, data.loser_username, data.winner_score, data.loser_score);
                     }
-                    
 
                     const gameOverLeftUsername = data.player_usernames.left;
                     const gameOverRightUsername = data.player_usernames.right;
@@ -495,11 +462,26 @@ export async function init(params) {
 
     animate();
 
+    
+    if (!gameSocket) {
+        gameSocket = await connectToGameSocket();
+    }
+
     window.currentCleanup = () => {
-        const orientationWarning = document.getElementById('orientation-warning');
-        if (orientationWarning) {
-            document.body.removeChild(orientationWarning);
-        }
+        window.removeEventListener('resize', () => {
+            onWindowResize(camera, renderer);
+        });
+
+        document.getElementById('goToProfile').removeEventListener('click', handleProfileClick);
+
+        document.removeEventListener("keydown", (event) => { keys[event.key] = true; });
+        document.removeEventListener("keyup", (event) => { keys[event.key] = false; });
+        
+        gameSocket.onmessage = null;
+        gameSocket.onopen = null;
+        gameSocket.onclose = null;
+        gameSocket.onerror = null;
+
 
         if (gameSocket && gameSocket.readyState === WebSocket.OPEN) {
             gameActive = false;
@@ -508,8 +490,4 @@ export async function init(params) {
         }
         roomId = null;
     };
-
-    if (!gameSocket) {
-        gameSocket = await connectToGameSocket();
-    }
 }

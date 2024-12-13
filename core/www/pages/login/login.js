@@ -11,6 +11,13 @@ export async function init(params) {
     const InvalidEmail = document.getElementById('InvalidEmail');
     const InvalidPass = document.getElementById('InvalidPass');
 
+    const handleLoginFormSubmit = async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (loginForm.checkValidity() && checkEmail() && checkPass()) {
+            await user_login();
+        }
+    }
 
     function checkEmail() {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -81,12 +88,10 @@ export async function init(params) {
         }
     }
 
-    loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (loginForm.checkValidity() && checkEmail() && checkPass()) {
-            await user_login();
-        }
-    });
+    loginForm.addEventListener('submit', handleLoginFormSubmit);
+
+    window.currentCleanup = () => {
+        loginForm.removeEventListener('submit', handleLoginFormSubmit);
+    };
 }
 

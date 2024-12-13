@@ -351,3 +351,10 @@ export async function ConnectNotificationSocket() {
         notificationSocket = await initializeNotificationSocket();
     }
 }
+
+export async function disconnectNotificationSocket() {
+    if (notificationSocket) {
+        notificationSocket.close();
+        notificationSocket = null;
+    }
+}

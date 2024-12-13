@@ -6,6 +6,7 @@ export async function init() {
     let currentRoomId = null;
     const username = await getUserName();
     const messages = document.getElementById('messages');
+    let messagesList = document.querySelector('#messages ul');
     messages.scrollTop = messages.scrollHeight;
 
     function formatDate(dateString) {
@@ -16,6 +17,12 @@ export async function init() {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         return `${hours}:${minutes} ${day}/${month}/${year}`;
+    }
+
+    const handle = async (event) => {
+        if (event.target.classList.contains('sender')) {
+            await router.navigate(`/profile?username=${event.target.textContent}`);
+        }
     }
 
     async function getFriends() {
@@ -157,7 +164,6 @@ export async function init() {
                 return;
             }
 
-            let messagesList = document.querySelector('#messages ul');
             messagesList.innerHTML = '';
 
             data.messages.forEach(message => {
@@ -183,11 +189,7 @@ export async function init() {
                 messagesList.appendChild(messageItem);
             });
 
-            messagesList.addEventListener('click', async (event) => {
-                if (event.target.classList.contains('sender')) {
-                    await router.navigate(`/profile?username=${event.target.textContent}`);
-                }
-            });
+            messagesList.addEventListener('click', handle);
 
             messagesList.innerHTML += `
                 <li id="sendGroup" class="ms-5">
@@ -247,12 +249,6 @@ export async function init() {
         
                 messagesList.insertBefore(newMessage, messagesList.querySelector('#sendGroup'));
                 messages.scrollTop = messages.scrollHeight;
-                
-                messagesList.addEventListener('click', async (event) => {
-                if (event.target.classList.contains('sender')) {
-                    await router.navigate(`/profile?username=${event.target.textContent}`);
-                }
-            });
         };
 
         chatSocket.onclose = function (e) {
@@ -335,6 +331,7 @@ export async function init() {
     }
 
     window.currentCleanup = () => {
+        messagesList.removeEventListener('click', handle);
         if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
             chatSocket.close();
             chatSocket = null;

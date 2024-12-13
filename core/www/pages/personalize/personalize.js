@@ -1,6 +1,6 @@
 "use strict";
 
-import { router, getCookie } from '../../code.js';
+import { router, getCookie , disconnectNotificationSocket} from '../../code.js';
 
 function validateUsername(username) {
   const usernameRegex = /^[a-zA-Z0-9]+$/;
@@ -10,7 +10,7 @@ function validateUsername(username) {
 }
 
 export async function init(params) {
-  document.getElementById("personalizeForm").addEventListener("submit", async (event) => {
+  const handleSubmitPersonalize = async (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -56,6 +56,7 @@ export async function init(params) {
           }
           return;
         } else {
+          await disconnectNotificationSocket();
           await router.navigate('/profile');
         }
       } catch (error) {
@@ -64,5 +65,11 @@ export async function init(params) {
     };
 
     await update_ui();
-  });
+  }
+
+  document.getElementById("personalizeForm").addEventListener("submit", handleSubmitPersonalize);
+
+  window.currentCleanup = () => {
+    document.getElementById("personalizeForm").removeEventListener("submit", handleSubmitPersonalize);
+  };
 }

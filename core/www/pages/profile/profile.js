@@ -10,21 +10,21 @@ export async function init(params) {
   const username = params.get('username');
   const buttonGroup = document.getElementById("buttonGroup");
   const blockUserButton = document.getElementById('blockUserButton');
-  if (username === await getUserName()) {
+  const { blockers, blockeds } = await getBlockedUsers();
+  
+  blockeds.forEach(user => {
+    if (username === user.blocker) {
+      showToastMessage('Bu kullanıcı sizi engellediğinden profilini görüntüleyemiyorsunuz!');
+      router.navigate('/profile');
+      return;
+    }
+  });
+
+  if (!username || username === await getUserName()) {
     buttonGroup.classList.add('d-none');
   }
 
   async function displayUserInfo(username) {
-    const { blockers, blockeds } = await getBlockedUsers();
-
-    blockeds.forEach(user => {
-      if (username === user.blocker) {
-        buttonGroup.innerHTML = '<p class="text-center text-light">Bu kullanıcı sizi engellediğinden profil sayfasını görüntüleyemezsiniz.</p>';
-        showToastMessage('Bu kullanıcı sizi engelledi.');
-        return;
-      }
-    });
-
     blockers.forEach(user => {
       if (username == user.blocked) {
         isBlocked = true;
@@ -50,22 +50,18 @@ export async function init(params) {
   const tfaInputForm = document.getElementById('tfaInputForm')
   const modal_reject_button = document.getElementById('rejectButton');
 
-  tfaInputForm.addEventListener('submit', async function (event) {
+  const handleTfaVerify = async (event) => {
     event.preventDefault();
     const tfaCode = document.getElementById('tfaInput').value
     await verifyTFA(tfaCode);
-  })
+  }
 
-  modal_reject_button.addEventListener('click', function () {
+  const handleModalReject =  () => {
     if (switchElement.checked)
       switchElement.checked = false;
-  });
+  }
 
-  //AddFriend
-  const addFriendButton = document.getElementById('addFriendButton');
-  const bootstrapFriendModal = new bootstrap.Modal(document.getElementById('friendModal'));
-
-  addFriendButton.addEventListener('click', async () => {
+  const handleAddFriendButton = async () => {
     if (isBlocked) {
       showToastMessage('Engellenmiş bir kullanıcı arkadaş olarak eklenemez!');
     }
@@ -75,7 +71,35 @@ export async function init(params) {
     else {
       await sendFriendRequest();
     }
-  })
+  }
+
+  const handleRemoveFriend =  async () => {
+    await removeFriend();
+  }
+
+  const handleBlockUser = async () => {
+    if (isBlocked) {
+      await unblockUser();
+    } else {
+      await blockUser();
+    }
+  }
+
+  const handleSendMessage = () => {
+    if (isFriend)
+      router.navigate('/messages');
+    else
+      showToastMessage('Arkadaşınız olmayan bir kullanıcıya mesaj gönderemezsiniz!');
+  }
+
+  tfaInputForm.addEventListener('submit', handleTfaVerify);
+  modal_reject_button.addEventListener('click', handleModalReject);
+
+  //AddFriend
+  const addFriendButton = document.getElementById('addFriendButton');
+  const bootstrapFriendModal = new bootstrap.Modal(document.getElementById('friendModal'));
+
+  addFriendButton.addEventListener('click', handleAddFriendButton);
 
 
   //Send Friend Request
@@ -200,9 +224,7 @@ export async function init(params) {
   }
 
   //Remove Friend
-  document.getElementById('friendRemoveButton').addEventListener('click', async () => {
-    await removeFriend();
-  });
+  document.getElementById('friendRemoveButton').addEventListener('click', handleRemoveFriend);
 
   // Two Factor Authentication
   async function verifyTFA(tfaCode) {
@@ -321,13 +343,7 @@ export async function init(params) {
     }
   }
 
-  blockUserButton.addEventListener('click', async () => {
-    if (isBlocked) {
-      await unblockUser();
-    } else {
-      await blockUser();
-    }
-  });
+  blockUserButton.addEventListener('click', handleBlockUser);
 
   async function getBlockedUsers() {
     const accessToken = getCookie('access_token');
@@ -355,12 +371,7 @@ export async function init(params) {
   }
 
   // Send Message
-  document.getElementById('sendMessageButton').addEventListener('click', () => {
-    if (isFriend)
-      router.navigate('/messages');
-    else
-      showToastMessage('Arkadaşınız olmayan bir kullanıcıya mesaj gönderemezsiniz!');
-  });
+  document.getElementById('sendMessageButton').addEventListener('click', handleSendMessage);
 
   // Display User Games
   async function displayUserGames(username) {
@@ -393,18 +404,18 @@ export async function init(params) {
             <div class="col-3">
               <small>${new Date(element.played_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</small>
             </div>
-            <div class="d-flex justify-content-between align-items-center col-6">
-              <div class="col-6">
-                <p class="mb-0">${element.winner_username}</p>
-                <p class="mb-0">${element.winnerScore}</p>
+            <div class="d-flex justify-content-center align-items-center col-6">
+              <div class="col-6 ms-1">
+                <p class="mb-0 text-truncate">${element.winner_username}</p>
+                <p class="mb-0 text-truncate">${element.winnerScore}</p>
               </div>
-              <div class="col-6">
-                <p class="mb-0">${element.loser_username}</p>
-                <p class="mb-0">${element.loserScore}</p>
+              <div class="col-6 me-1">
+                <p class="mb-0 text-truncate">${element.loser_username}</p>
+                <p class="mb-0 text-truncate">${element.loserScore}</p>
               </div>
             </div>
-            <div class="col-3">
-              <span class="${element.winner_username === username ? 'winBadges' : 'loseBadges'}">
+            <div class="col-3 d-flex justify-content-end">
+              <span class="${element.winner_username === username ? 'winBadges' : 'loseBadges'} me-2">
                 ${element.winner_username === username ? 'Galibiyet' : 'Mağlubiyet'}
               </span>
             </div>
@@ -457,4 +468,13 @@ export async function init(params) {
   await displayUserStats(username);
   await displayUserGames(username);
   await checkIfFriend();
+
+  window.currentCleanup = () => {
+    tfaInputForm.removeEventListener('submit', handleTfaVerify);
+    modal_reject_button.removeEventListener('click', handleModalReject);
+    addFriendButton.removeEventListener('click', handleAddFriendButton);
+    document.getElementById('friendRemoveButton').removeEventListener('click', handleRemoveFriend);
+    blockUserButton.removeEventListener('click', handleBlockUser);
+    document.getElementById('sendMessageButton').removeEventListener('click', handleSendMessage);
+  };
 }

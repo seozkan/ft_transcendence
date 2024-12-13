@@ -3,11 +3,13 @@
 import { getCookie, router } from '../../code.js';
 
 export async function init(params) {
-    document.getElementById('tfaButton').addEventListener('click', async (event) => {
+    const handleTfaButton = async (event) => {
         event.preventDefault();
         const tfaCode = document.getElementById('password').value;
         await tfa_login(tfaCode);
-    });
+    }
+
+    document.getElementById('tfaButton').addEventListener('click', handleTfaButton);
 
     async function tfa_login(tfaCode) {
         const csrfToken = getCookie('csrftoken');
@@ -35,4 +37,8 @@ export async function init(params) {
             console.error('error:', error);
         }
     }
+
+    window.currentCleanup = () => {
+        document.getElementById('tfaButton').removeEventListener('click', handleTfaButton);
+    };
 }

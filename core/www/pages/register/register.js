@@ -108,12 +108,22 @@ export async function init(params) {
         }
     }
 
-    registerForm.addEventListener('submit', async (event) => {
+    const handleRegisterFormSubmit = async (event) => {
         event.preventDefault();
         event.stopPropagation();
         if (registerForm.checkValidity() && checkFirstName() && checkLastName() && checkEmail() && checkPass()) {
             await user_register();
         }
-    });
+    }
+
+    registerForm.addEventListener('submit', handleRegisterFormSubmit);
+
+    window.currentCleanup = () => {
+        registerFirstNameInput.removeEventListener('blur', () => { checkFirstName() });
+        registerLastNameInput.removeEventListener('blur', () => { checkLastName() });
+        registerEmailInput.removeEventListener('blur', () => { checkEmail() });
+        registerPassInput.removeEventListener('blur', () => { checkPass() });
+        registerForm.removeEventListener('submit', handleRegisterFormSubmit);
+    };
 }
 

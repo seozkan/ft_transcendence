@@ -8,7 +8,7 @@ export async function init() {
         });
         
         if (!response.ok) {
-            throw new Error('Intra auth URL alınamadı');
+            console.error('Intra auth URL alınamadı');
         }
 
         const data = await response.json();

@@ -21,7 +21,7 @@ export async function init() {
     let tournamentPlayers = [];
     let randomMatchPlayers = [];
 
-    tournamentCard.addEventListener('click', () => {
+    const handleTournament = () => {
         gameModalTitle.textContent = 'Turnuva Modu';
 
         notificationSocket.send(JSON.stringify({
@@ -35,9 +35,9 @@ export async function init() {
                 avatar: userAvatar
             }
         }));
-    });
+    }
 
-    randomMatchCard.addEventListener('click', () => {
+    const handleRandom = () => {
         gameModalTitle.textContent = 'Rastgele Eşleştir';
         gameModalFooter.innerHTML = '';
 
@@ -52,19 +52,14 @@ export async function init() {
                 avatar: userAvatar
             }
         }));
-    });
+    };
 
     const handleModalHide = () => {
         console.log('Modal kapatıldı');
     };
 
-    window.currentCleanup = () => {
-        if (notificationSocket) {
-            notificationSocket.removeEventListener('message', handleNotificationMessage);
-        }
-        gameModal.removeEventListener('hide.bs.modal', handleModalHide);
-    };
-
+    tournamentCard.addEventListener('click', handleTournament);
+    randomMatchCard.addEventListener('click', handleRandom);
     gameModal.addEventListener('hide.bs.modal', handleModalHide);
 
     const handleNotificationMessage = async (event) => {
@@ -155,5 +150,15 @@ export async function init() {
                 break;
         }
     };
+
     notificationSocket.addEventListener('message', handleNotificationMessage);
+
+    window.currentCleanup = () => {
+        if (notificationSocket) {
+            notificationSocket.removeEventListener('message', handleNotificationMessage);
+        }
+        gameModal.removeEventListener('hide.bs.modal', handleModalHide);
+        tournamentCard.removeEventListener('click', handleTournament);
+        randomMatchCard.removeEventListener('click', handleRandom);
+    };
 }

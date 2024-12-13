@@ -316,7 +316,6 @@ class GameViewSet(viewsets.ViewSet):
             ).order_by('-played_at')
             
             serializer = GameSerializer(games, many=True)
-            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         except User.DoesNotExist:
